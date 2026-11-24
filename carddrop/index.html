@@ -1,0 +1,1008 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>CARD DROP · Daddy Pixels</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABN0lEQVR4Xu2bPQrCQBSEjVgJnsEjuKW30d7WztrO1t7jWOYIegbBVsFuX8DH8vKyPzNfF2LCOs5M8hbsNrvHZwbMHPi7/6AA6A5YSAH647IoTcLlHa2nv62j47B/Jp2XwDuAAhTl9wwMOqB0ZOYl2nl2gAA+AvACDDpAPndbB94BFKB1i2sMZ4HrXbumasJhG60f3gEUoGo/j4B9Fjit/i/j/LIt0/n+8A6gADZ/1k96B2iZlMjPa53gfX+OwzHwEYAXIL0DrKRm3Bl4B1AAZ4cVDwUo/idyhgI4C1w86e8B8l0+93Ndmy0U4B1AATSLtE56B0im7gRj5rkfwP0AbohE2DvAuxNGzjwjwAiwA5w7wNoJzplnBBgBdsDEHaB1Qmbgp0EKkNmB2en4v0Fw4CMALwAhBJsvbxou7SooE98AAAAASUVORK5CYII=">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--b:#2f5fe0;--pink:#ffd3ea;--hot:#ff6fb5;--yel:#fff4a8;--mint:#d4f59a;--sky:#d3f1ff;--bg:#e8f6ff;--txt:#2f5fe0;--panel:#fff;--soft:#ffffffcc}
+body.fallout{--b:#3cff7a;--pink:#0d2214;--hot:#1f9a48;--yel:#0d2214;--mint:#0d2214;--sky:#07140b;--bg:#07140b;--txt:#3cff7a;--panel:#07140b;--soft:#0d2214}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:Silkscreen,'Courier New',monospace;color:var(--txt);background:var(--bg);
+  background-image:linear-gradient(#ffffff99 2px,transparent 2px),linear-gradient(90deg,#ffffff99 2px,transparent 2px);background-size:32px 32px;
+  font-size:12px;overflow-x:hidden}
+body.fallout{font-family:VT323,Consolas,monospace;font-size:18px;background-image:none;text-shadow:0 0 5px #3cff7a88}
+body.fallout::after{content:"";position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.3) 0 2px,transparent 2px 4px)}
+.win{background:var(--panel);border:3px solid var(--b);box-shadow:4px 4px 0 #2f5fe055;margin:10px}
+body.fallout .win{border-width:1px;box-shadow:none}
+.bar{height:24px;border-bottom:3px solid var(--b);background:var(--pink);display:flex;align-items:center;gap:6px;padding:0 8px}
+body.fallout .bar{border-bottom-width:1px}
+.bar b{margin-right:auto;font-size:11px}
+.dot{width:11px;height:11px;border:2px solid var(--b);background:var(--panel)}
+.pad{padding:12px}
+h1{font-size:22px;text-align:center;letter-spacing:1px;text-shadow:3px 3px 0 var(--hot)}
+body.fallout h1{text-shadow:0 0 8px #3cff7a;font-size:30px}
+.sub{text-align:center;font-family:VT323,monospace;font-size:18px;margin:2px 0 8px}
+input{width:100%;font-family:VT323,monospace;font-size:20px;color:var(--txt);background:var(--sky);border:3px solid var(--b);padding:5px 8px;margin:4px 0 8px;outline:none}
+body.fallout input{border-width:1px}
+button{font-family:inherit;font-size:12px;font-weight:700;color:#fff;background:var(--hot);border:3px solid var(--b);padding:7px 10px;cursor:pointer;box-shadow:3px 3px 0 var(--b)}
+body.fallout button{color:var(--txt);background:transparent;border-width:1px;box-shadow:none;font-size:18px}
+body.fallout button:hover:not(:disabled){background:var(--txt);color:#07140b;text-shadow:none}
+button:active:not(:disabled){transform:translate(3px,3px);box-shadow:none}
+button:disabled{opacity:.45;cursor:default}
+button.alt{background:var(--yel);color:var(--txt)}
+.wide{width:100%}
+.tabs{display:flex;gap:6px;margin:10px 10px 0}
+.tabs button{flex:1;background:var(--sky);color:var(--txt);box-shadow:none;padding:6px 4px}
+.tabs button.on{background:var(--hot);color:#fff}
+body.fallout .tabs button.on{background:var(--txt);color:#07140b}
+.top{display:flex;align-items:center;gap:8px;margin:10px 10px 0;font-size:11px}
+.top .me{margin-right:auto}
+.top button{padding:4px 8px;font-size:10px;box-shadow:2px 2px 0 var(--b)}
+.err{color:#e23b3b;font-family:VT323,monospace;font-size:18px;min-height:20px}
+.timer{font-family:VT323,monospace;font-size:44px;text-align:center;line-height:1}
+.small{font-family:VT323,monospace;font-size:17px;text-align:center}
+.row3{display:flex;gap:7px;justify-content:center;margin-top:10px}
+.card{width:116px;height:214px;display:flex;flex-direction:column;padding:4px;border:3px solid var(--b);position:relative;cursor:default;
+  background:linear-gradient(160deg,var(--f1),var(--f2) 45%,var(--f1) 55%,var(--f2));box-shadow:inset 0 0 0 2px #ffffff99}
+.card.s1{--f1:#eef2f8;--f2:#b8c3d4}.card.s2{--f1:#e6fad2;--f2:#93cf6b}.card.s3{--f1:#dcefff;--f2:#6fa8ff}
+.card.s4{--f1:#f4e3ff;--f2:#b182ff}.card.s5{--f1:#fff7c2;--f2:#ffbf2e}
+.card .plate{position:relative;z-index:2;background:#ffffffd9;border:2px solid var(--b);font-size:8px;font-weight:700;text-align:center;
+  padding:3px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#2f5fe0;border-radius:3px}
+.card .plate.sr{font-family:VT323,monospace;font-size:13px;font-weight:400;padding:1px 2px}
+.card .art{position:relative;flex:1;margin:4px 0;border:2px solid var(--b);overflow:hidden;background:#fff}
+.card .art canvas{display:block;width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
+.card .foot{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center;margin-top:3px}
+.card .stars{font-size:10px;letter-spacing:-1px;color:#ffb800;text-shadow:1px 1px 0 #2f5fe0}
+.card .code{font-family:VT323,monospace;font-size:12px;background:#ffffffd9;border:1px solid var(--b);padding:0 3px;color:#2f5fe0;border-radius:2px}
+.card .tag{position:absolute;z-index:3;top:30px;right:7px;font-size:7px;padding:1px 3px;background:#2f5fe0;color:#fff}
+/* holographic foil */
+.card.holo .art::after,.card.full::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;mix-blend-mode:color-dodge;opacity:.55;
+  background:linear-gradient(115deg,#ff4f9a 0%,#ffd23f 16%,#5cff9d 33%,#4fd8ff 50%,#a05cff 66%,#ff4f9a 83%,#ffd23f 100%);background-size:300% 300%;
+  animation:holo 4s linear infinite}
+.card.holo{background:linear-gradient(135deg,#ffd3ea,#d3f1ff,#d4f59a,#fff4a8,#e6d3ff,#ffd3ea);background-size:300% 300%;animation:holo 5s linear infinite}
+@keyframes holo{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+/* full art: the picture fills the whole card */
+.card.full .art{position:absolute;inset:0;margin:0;border:none;z-index:0}
+.card.full .plate{background:#ffffffb3}
+.card.full .plate.sr{margin-top:auto}
+.card.full .tag{top:auto;bottom:44px}
+.card.full::after{opacity:.35;z-index:1}
+.card.s5::before{content:"";position:absolute;inset:-5px;border:3px dashed #ffb800;animation:spin 3s steps(6) infinite;pointer-events:none;z-index:4}
+@keyframes spin{50%{border-color:#ff6fb5}}
+body.fallout .card{--f1:#0d2214;--f2:#07140b;border-width:1px;box-shadow:inset 0 0 0 1px #1f9a48}
+body.fallout .card.s4,body.fallout .card.s5{--f1:#163d22;--f2:#0a1f10}
+body.fallout .card .plate,body.fallout .card .code{background:#07140bd9;color:#3cff7a;border-width:1px;font-size:13px}
+body.fallout .card .plate.sr{font-size:14px}
+body.fallout .card .art{border-width:1px}
+body.fallout .card .art canvas{filter:grayscale(1) sepia(1) hue-rotate(70deg) saturate(3.5) brightness(.9)}
+body.fallout .card .stars{color:#3cff7a;text-shadow:0 0 4px #3cff7a}
+body.fallout .card .tag{background:#3cff7a;color:#07140b}
+body.fallout .card.holo{background:linear-gradient(135deg,#07140b,#1f9a48,#07140b,#3cff7a55,#07140b);background-size:300% 300%}
+body.fallout .card.holo .art::after,body.fallout .card.full::after{background:linear-gradient(115deg,transparent 20%,#b6ff8a 35%,transparent 50%,#3cff7a 65%,transparent 80%);background-size:300% 300%}
+.card .over{position:absolute;inset:0;z-index:5;background:#2f5fe0cc;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:10px;padding:6px}
+.card .over.mine{background:#ff6fb5dd}
+body.fallout .card .over{background:#07140bdd;color:#3cff7a}
+.grab{display:block;width:116px;margin-top:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,116px);gap:10px;justify-content:center;margin-top:10px}
+.grid .card{cursor:pointer}
+.lb{width:100%;border-collapse:collapse;font-family:VT323,monospace;font-size:20px}
+.lb td{padding:4px 6px;border-bottom:2px dashed var(--b)}
+.lb tr.me td{background:var(--yel)}
+.toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:var(--yel);border:3px solid var(--b);padding:8px 14px;font-size:11px;z-index:9;box-shadow:3px 3px 0 var(--b);max-width:90%;text-align:center}
+body.fallout .toast{background:#07140b;border-width:1px}
+.modal{position:fixed;inset:0;background:#2f5fe066;display:flex;align-items:center;justify-content:center;z-index:8}
+body.fallout .modal{background:#000a}
+.modal .card{transform:scale(1.9)}
+.rates{font-family:VT323,monospace;font-size:16px;text-align:center;margin-top:8px;opacity:.8}
+select{font-family:inherit;font-size:11px;color:var(--txt);background:var(--panel);border:2px solid var(--b);padding:3px}
+.flash{animation:fl .5s steps(2) 6}@keyframes fl{50%{opacity:.2}}
+/* big pull announcements */
+.ann{position:fixed;z-index:20;top:10px;left:50%;transform:translateX(-50%);width:min(380px,94vw);display:flex;gap:10px;align-items:center;
+  padding:8px 12px;border:3px solid var(--b);box-shadow:4px 4px 0 var(--b);cursor:pointer;animation:annin .45s steps(6)}
+.ann.five{background:linear-gradient(135deg,#fff4a8,#ffd23f,#fff4a8)}
+.ann.full{background:linear-gradient(115deg,#ffd3ea,#d3f1ff,#d4f59a,#fff4a8,#e6d3ff);background-size:300% 300%;animation:annin .45s steps(6),holo 3s linear infinite}
+body.fallout .ann{background:#07140b;border-width:1px;box-shadow:0 0 12px #3cff7a88}
+.ann.out{transform:translate(-50%,-140%);transition:transform .4s steps(5)}
+@keyframes annin{from{transform:translate(-50%,-140%)}to{transform:translate(-50%,0)}}
+.anncard{zoom:.42;flex:none}.anntext{font-size:10px;line-height:1.5;color:#2f5fe0}.anntext .big{font-size:13px;color:#e23b3b}
+body.fallout .anntext{color:#3cff7a;font-size:16px}body.fallout .anntext .big{color:#b6ff4a;font-size:19px}
+.bp{display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--b);font-size:10px;line-height:1.6}
+.bpcard{zoom:.35;flex:none}body.fallout .bp{font-size:16px}
+/* MY CARDS | INDEX switch */
+.seg{display:flex;margin-bottom:10px}.seg button{flex:1;box-shadow:none;background:var(--sky);color:var(--txt);padding:5px}
+.seg button.on{background:var(--hot);color:#fff}body.fallout .seg button.on{background:var(--txt);color:#07140b}
+/* card index */
+.ixhead{text-align:center;margin-bottom:6px}.ixhead .bar2{margin:6px 0}
+#ixseries{width:100%;margin-bottom:6px}
+.ixgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;margin:8px 0}
+.ix{border:2px solid var(--b);background:#fff;padding:2px;cursor:pointer;text-align:center}
+.ix canvas{display:block;width:100%;image-rendering:pixelated}
+.ix.missing{background:var(--sky)}
+.ix.got{background:#fff4a8}
+body.fallout .ix{border-width:1px;background:#07140b}body.fallout .ix.got canvas{filter:grayscale(1) sepia(1) hue-rotate(70deg) saturate(3.5) brightness(.9)}
+body.fallout .ix.missing canvas{filter:none}
+.ixn{font-family:VT323,monospace;font-size:13px}.ixname{font-size:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.fallout .ixname{font-size:13px}
+.modal{flex-direction:column}.modalnote{margin-top:200px;background:var(--panel);border:2px solid var(--b);padding:4px 10px;font-family:VT323,monospace;font-size:18px}
+/* phones */
+@media (max-width:420px){
+  .win{margin:8px 4px}.pad{padding:8px}.top,.tabs{margin-left:4px;margin-right:4px}
+  .row3{gap:4px}.row3 .card,.grab{width:calc((100vw - 48px) / 3)}
+  .row3 .card{height:calc((100vw - 48px) / 3 * 1.85)}
+  .row3 .card .plate{font-size:7px}.row3 .card .plate.sr{font-size:11px}
+  .tabs button{font-size:8px;padding:6px 0}h1{font-size:18px}.timer{font-size:38px}
+  .modal .card{transform:scale(1.55)}
+}
+.tabs button{position:relative;font-size:10px;padding:6px 2px}
+body.fallout .tabs button{font-size:16px}
+.badge{display:none;position:absolute;top:-8px;right:-4px;background:#e23b3b;color:#fff;font-size:9px;padding:1px 5px;border:2px solid var(--b);text-shadow:none}
+.badge.on{display:inline-block}
+.frow .badge.on{position:static;margin-left:6px}
+.sec{font-weight:700;margin:14px 0 8px;padding-bottom:3px;border-bottom:2px dashed var(--b)}
+.row{display:flex;gap:6px;align-items:center;margin-bottom:6px}.row input{margin:0}
+.chip{padding:3px 7px;margin:2px;font-size:10px;box-shadow:none;background:var(--sky);color:var(--txt)}
+.chip.fr{background:var(--pink)}
+body.fallout .chip{font-size:16px}
+.lbl{font-weight:700;font-size:10px;margin:10px 0 4px;display:flex;justify-content:space-between}
+.lbl span,.lbl2{font-family:VT323,monospace;font-size:16px;font-weight:400}
+.mgrid{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.pick{zoom:.5;cursor:pointer;outline:6px solid transparent;outline-offset:4px}
+.pick.sel{outline-color:var(--hot)}
+body.fallout .pick.sel{outline-color:#3cff7a}
+.pick .card{cursor:pointer}
+.offer{border:2px solid var(--b);padding:8px;margin:8px 0;background:var(--sky)}
+.offer.declined,.offer.cancelled,.offer.failed{opacity:.55}
+.offer .oh{display:flex;justify-content:space-between;margin-bottom:4px}
+.offer .st{font-family:VT323,monospace;font-size:16px}
+.offer.accepted .st{color:#2fa84f}
+.orow{display:flex;gap:6px;align-items:center;margin-bottom:6px}.orow .side{flex:1}.arrow{font-size:20px}
+.offer button{padding:4px 10px;font-size:10px}
+.frow{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px dashed var(--b)}
+.frow b{flex:1}.frow button{padding:4px 8px;font-size:10px;box-shadow:2px 2px 0 var(--b)}
+body.fallout .frow button,body.fallout .offer button{font-size:16px;box-shadow:none}
+.chathead{display:flex;align-items:center;gap:8px;margin-bottom:8px}.chathead b{flex:1;text-align:center}
+.chathead button{padding:4px 8px;font-size:10px;box-shadow:2px 2px 0 var(--b)}
+.chat{height:320px;overflow-y:auto;border:2px solid var(--b);padding:8px;background:var(--sky);display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.bub{max-width:80%;padding:5px 9px;font-family:VT323,monospace;font-size:19px;border:2px solid var(--b);background:#fff;align-self:flex-start;overflow-wrap:anywhere}
+.bub.me{align-self:flex-end;background:var(--pink)}
+body.fallout .bub{background:#0d2214;border-width:1px}body.fallout .bub.me{background:#163d22}
+</style></head>
+<body class="pixels"><div id="app"></div>
+<script>
+"use strict";
+const CFG = {url: "", key: ""};
+const CONFIGURED = CFG.url.startsWith("https://") && CFG.key.length > 20;
+const DROP_EVERY = 900, DROP_WINDOW = 300, POOL = 300, SLOTS = 3;
+const WEB = "1" === "1";   // the phone/website version has its own skin switch
+if (WEB) { let sk = "pixels"; try { sk = localStorage.getItem("dp_skin") || "pixels"; } catch (e) {} document.body.className = sk; }
+const FALLOUT = document.body.classList.contains("fallout");
+
+// ------------------------------------------------------------------ dice rolls
+// MUST match card_roll() / claim_card() in the server SQL, so everyone sees the same cards.
+function cardRoll(drop, slot) {
+  const M = 4294967296n;
+  const x = (BigInt(drop) * 7919n + BigInt(slot) * 104729n + 12345n) % M;
+  return (x * 2654435761n) % M;
+}
+function cardFor(drop, slot) {
+  const roll = cardRoll(drop, slot);
+  const cid = Number(roll % BigInt(POOL));
+  const r = Number((roll / 300n) % 1000n), f = Number((roll / 300000n) % 1000n);
+  const stars = r < 15 ? 5 : r < 80 ? 4 : r < 220 ? 3 : r < 500 ? 2 : 1;
+  const finish = f < 25 ? "full" : f < 150 ? "holo" : "normal";
+  return {cid, stars, finish};
+}
+const STAR_POINTS = [0, 1, 3, 8, 20, 60], FINISH_MULT = {normal: 1, holo: 2, full: 4};
+const cardPoints = c => STAR_POINTS[c.stars] * FINISH_MULT[c.finish];
+
+// ------------------------------------------------------------------ original characters
+// 300 original pixel-art characters, drawn by code from their number - same everywhere.
+function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+  let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+  return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const pick = (r, a) => a[Math.floor(r() * a.length)];
+const FIRST = ["Ha","Ki","Ri","Yu","Mi","Ka","Sa","To","Ne","Ai","Ren","So","Hi","Na","Ru","Shi","Ko","Mo","Ta","Ya","Ze","Lu","Ema","Iro","Fu","Chi"];
+const SECOND = ["ko","na","to","ri","mi","ki","ra","no","ka","ru","ya","sa","ne","yu","ta","hi","me"];
+const THIRD = ["n","ko","ki","ra","ne"];
+const LAST = ["Hoshizora","Kumomori","Pikuseru","Amagumo","Tsukishiro","Hanabira","Kirameki","Yozakura","Mizutani",
+  "Kagerou","Shiraume","Akatsuki","Nekomura","Sorano","Bitmaru","Glitchi","Momozono","Kurogane","Aozora","Daddy"];
+const SERIES = ["Pixel Academy","Neon Drift Club","Moonlit Bakery","Cafe Overdrive","Cyber Shrine Maidens","Petal Storm",
+  "Ghost Club 404","Mecha Lunchbox","Sky Pirates of Uru","Daddy-Tec Academy","Starfruit Idols","Midnight Arcade",
+  "Slime Farm Diaries","Lo-Fi Witches","Bitcrush Battle High"];
+const HAIR = ["#2b2b48","#f2d16b","#ff8fc8","#7fd0ff","#b38cff","#e2553f","#f4f4f4","#5a3a2b","#3fbf8f","#ff9f43","#d94fa0","#9aa6b8"];
+const EYES = ["#3a7bff","#ff4f9a","#2fbf71","#a05cff","#ff9a1f","#e23b3b","#18b6c9","#c9a227"];
+const SKIN = ["#ffe3cf","#f6cfb0","#e8b48f","#c98f66","#9a6644","#fff0e6"];
+const OUTFIT = ["#2f5fe0","#ff6fb5","#3cbf6a","#222244","#ffffff","#ff8c42","#8f5bff","#e23b3b","#18b6c9"];
+const charCache = {};
+const OUTFIT_STYLES = ["sailor", "blazer", "hoodie", "jacket", "dress", "armor"];
+const ACCENT = ["#e23b3b", "#ffd23f", "#ff6fb5", "#2f5fe0", "#3cbf6a", "#8f5bff", "#18b6c9", "#ff8c42"];
+function charInfo(k) {
+  if (charCache[k]) return charCache[k];
+  const r = rng(k * 9973 + 17);
+  const first = pick(r, FIRST) + pick(r, SECOND) + (r() < .3 ? pick(r, THIRD) : "");
+  const name = first + " " + pick(r, LAST), series = pick(r, SERIES);
+  const info = {name, series,
+    look: {hair: pick(r, HAIR), eyes: pick(r, EYES), skin: pick(r, SKIN), outfit: pick(r, OUTFIT),
+      style: Math.floor(r() * 8), acc: Math.floor(r() * 10), mouth: Math.floor(r() * 5), blush: r() < .6,
+      wear: Math.floor(r() * OUTFIT_STYLES.length), accent: pick(r, ACCENT), sharp: r() < .35,
+      theme: SERIES.indexOf(series) % 6, bangs: Array.from({length: 7}, () => 6 + Math.floor(r() * 7))}};
+  return (charCache[k] = info);
+}
+function shade(hex, amt) {
+  const n = parseInt(hex.slice(1), 16);
+  const c = v => Math.max(0, Math.min(255, v + amt));
+  return "#" + [c(n >> 16), c(n >> 8 & 255), c(n & 255)].map(v => v.toString(16).padStart(2, "0")).join("");
+}
+
+// ---- background: one theme per series, extra effects for rare cards
+function drawBackground(c, W, H, k, stars, theme) {
+  const r = rng(k * 31 + 7);
+  const px = (x, y, w, h, col) => { c.fillStyle = col; c.fillRect(x, y, w, h); };
+  const bands = (cols) => { const h = Math.ceil(H / cols.length); cols.forEach((col, i) => px(0, i * h, W, h, col)); };
+  if (theme === 0) {            // sky + clouds
+    bands(["#7cc6ff", "#8fd0ff", "#a3d9ff", "#b8e2ff", "#cdebff", "#e2f4ff"]);
+    for (let i = 0; i < 3; i++) { const x = Math.floor(r() * 50) - 6, y = 6 + Math.floor(r() * 30);
+      px(x + 3, y, 10, 3, "#fff"); px(x, y + 2, 16, 3, "#fff"); px(x + 2, y + 4, 12, 1, "#e6f3ff"); }
+  } else if (theme === 1) {     // night sky, stars, moon
+    bands(["#141236", "#1b1842", "#23204f", "#2c285c", "#363068", "#413a75"]);
+    for (let i = 0; i < 26; i++) px(Math.floor(r() * W), Math.floor(r() * H * .7), 1, 1, r() < .3 ? "#ffe9a8" : "#ffffff");
+    px(48, 6, 8, 8, "#fff3c4"); px(47, 8, 10, 4, "#fff3c4"); px(51, 7, 5, 5, "#e8d9a0");
+  } else if (theme === 2) {     // sakura
+    bands(["#ffd6ea", "#ffdcee", "#ffe3f1", "#ffe9f4", "#fff0f8", "#fff6fb"]);
+    for (let i = 0; i < 22; i++) { const x = Math.floor(r() * W), y = Math.floor(r() * H);
+      px(x, y, 2, 1, "#ff9cc7"); px(x + 1, y + 1, 1, 1, "#ff7fb6"); }
+  } else if (theme === 3) {     // sunset city
+    bands(["#ff9a62", "#ffad6e", "#ffc07d", "#ffd28f", "#ffe0a6", "#ffecc2"]);
+    let x = 0;
+    while (x < W) { const w = 5 + Math.floor(r() * 8), h = 14 + Math.floor(r() * 26);
+      px(x, H - h, w, h, "#6a3d7a"); for (let wy = H - h + 3; wy < H - 2; wy += 4) for (let wx = x + 1; wx < x + w - 1; wx += 3) if (r() < .5) px(wx, wy, 1, 2, "#ffe066");
+      x += w + 1; }
+  } else if (theme === 4) {     // retro grid sunset
+    bands(["#2a1b5c", "#3b1f6e", "#56227d", "#7a2386", "#a0278a", "#c7338a"]);
+    for (let y = 0; y < 14; y++) { const half = Math.floor(Math.sqrt(14 * 14 - y * y)); if (y % 4 !== 3) px(32 - half, 36 - y, half * 2, 1, y > 7 ? "#ffd23f" : "#ff8f3f"); }
+    for (let y = 40; y < H; y += 5) px(0, y, W, 1, "#ff6fd8");
+    for (let i = -6; i <= 6; i++) for (let y = 40; y < H; y++) px(Math.round(32 + i * (y - 36) * .9), y, 1, 1, "#ff6fd8");
+  } else {                      // soft dots in the star colour
+    const base = [null, "#e9eef5", "#d4f59a", "#d3f1ff", "#ead6ff", "#fff4a8"][stars];
+    px(0, 0, W, H, base);
+    for (let y = 2; y < H; y += 6) for (let x = (y / 6) % 2 ? 2 : 5; x < W; x += 6) px(x, y, 2, 2, shade(base, -18));
+  }
+  if (stars === 5) {            // golden light rays
+    c.save(); c.globalAlpha = .35; c.fillStyle = "#fff6b0";
+    for (let a = 0; a < 12; a++) { c.beginPath(); c.moveTo(32, 46);
+      const t1 = a / 12 * Math.PI * 2, t2 = t1 + .18; c.lineTo(32 + Math.cos(t1) * 90, 46 + Math.sin(t1) * 90); c.lineTo(32 + Math.cos(t2) * 90, 46 + Math.sin(t2) * 90); c.fill(); }
+    c.restore();
+  }
+}
+
+// ---- the character, drawn on its own layer so it can get a pixel outline
+function drawCharacter(c, L, H, oy) {
+  const px = (x, y, w, h, col) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y + oy), w, h); };
+  const hair = L.hair, hd = shade(hair, -50), hdd = shade(hair, -80), hl = shade(hair, 55);
+  const sk = L.skin, sks = shade(sk, -30), line = "#2a2140", out = L.outfit, outd = shade(out, -45), outl = shade(out, 35);
+  const S = L.style;
+  // back hair
+  if (S === 1) { px(12, 12, 40, 70, hd); px(10, 30, 44, 54, hd); }
+  if (S === 2) { px(16, 10, 32, 22, hd); for (const x of [2, 51]) { px(x, 22, 11, 52, hair); px(x + 1, 74, 9, 4, hair); px(x + 3, 78, 5, 3, hd); px(x + 2, 26, 7, 2, L.accent); px(x + (x < 30 ? 7 : 1), 30, 2, 40, hd); } }
+  if (S === 4) { px(16, 10, 32, 24, hd); px(47, 14, 13, 60, hair); px(49, 74, 9, 5, hd); px(55, 18, 2, 52, hd); px(46, 16, 4, 4, L.accent); }
+  if (S === 0 || S === 6) px(14, 12, 36, 38, hd);
+  if (S === 3 || S === 5) px(14, 12, 36, 30, hd);
+  if (S === 7) { px(14, 12, 36, 32, hd); for (const x of [12, 42]) { px(x, 2, 10, 10, hair); px(x + 2, 1, 6, 1, hair); px(x + 2, 3, 3, 2, hl); } }
+  // body + outfit
+  px(14, 58, 36, 2, out); px(9, 60, 46, H, out); px(9, 60, 3, H, outd); px(52, 60, 3, H, outd);
+  const W = OUTFIT_STYLES[L.wear];
+  if (W === "sailor") { for (let i = 0; i < 9; i++) { px(20 + i, 58 + i, 24 - i * 2, 1, "#ffffff"); } px(18, 58, 28, 2, "#ffffff"); px(19, 61, 3, 1, L.accent); px(42, 61, 3, 1, L.accent);
+    px(28, 66, 8, 4, L.accent); px(25, 67, 3, 3, L.accent); px(36, 67, 3, 3, L.accent); px(31, 70, 2, 5, shade(L.accent, -30)); }
+  if (W === "blazer") { px(26, 58, 12, 12, "#ffffff"); px(30, 60, 4, 16, L.accent); px(29, 59, 6, 2, shade(L.accent, -30)); px(20, 60, 7, 18, outd); px(37, 60, 7, 18, outd); px(46, 68, 4, 3, "#ffd23f"); }
+  if (W === "hoodie") { px(18, 57, 28, 4, outd); px(22, 61, 1, 12, "#ffffff"); px(41, 61, 1, 12, "#ffffff"); px(21, 73, 3, 2, "#ffffff"); px(40, 73, 3, 2, "#ffffff"); px(22, 76, 20, 8, outd); }
+  if (W === "jacket") { px(31, 58, 2, H, outd); px(24, 57, 7, 6, outl); px(33, 57, 7, 6, outl); for (let y = 62; y < H - oy; y += 3) px(31, y, 2, 1, "#cfd6e0"); px(14, 74, 8, 2, outl); px(42, 74, 8, 2, outl); }
+  if (W === "dress") { px(18, 58, 28, 3, "#ffffff"); for (let x = 18; x < 46; x += 3) px(x, 61, 2, 1, "#ffffff"); px(27, 58, 10, 6, sk); px(28, 64, 8, 1, sks); px(30, 66, 4, 3, L.accent); }
+  if (W === "armor") { px(9, 59, 14, 9, outl); px(41, 59, 14, 9, outl); px(11, 61, 2, 2, "#fff6c4"); px(51, 61, 2, 2, "#fff6c4"); px(22, 62, 20, 16, outl); px(24, 64, 16, 1, outd); px(31, 64, 2, 14, outd); px(30, 70, 4, 4, L.accent); }
+  // neck + face
+  px(27, 50, 10, 9, sk); px(27, 50, 10, 3, sks);
+  const face = [[20, 21, 23], [22, 19, 27], [45, 20, 25], [47, 22, 21], [48, 24, 17], [49, 26, 13], [50, 28, 9]];
+  px(21, 20, 22, 2, sk);
+  for (let y = 22; y <= 44; y++) px(19, y, 27, 1, sk);
+  px(20, 45, 25, 2, sk); px(22, 47, 21, 1, sk); px(24, 48, 17, 1, sk); px(26, 49, 13, 1, sk); px(28, 50, 9, 1, sk);
+  px(42, 26, 4, 19, sks); px(41, 45, 3, 3, sks);                           // shadow on one side
+  px(16, 31, 3, 7, sk); px(46, 31, 3, 7, sk); px(17, 33, 1, 3, sks); px(47, 33, 1, 3, sks);
+  px(19, 19, 27, 3, sks);                                                   // shadow under the fringe
+  // eyes
+  for (const [x, flip] of [[21, false], [36, true]]) {
+    px(x + 1, 31, 6, 2, line); px(flip ? x + 7 : x - 1, L.sharp ? 31 : 32, 2, 1, line); px(flip ? x + 8 : x - 2, L.sharp ? 30 : 31, 1, 1, line);
+    px(x + 1, 33, 6, 6, L.eyes); px(x + 1, 33, 6, 2, shade(L.eyes, -55)); px(x + 1, 37, 6, 2, shade(L.eyes, 60));
+    px(x + 3, 34, 2, 3, shade(L.eyes, -95));
+    px(x + 2, 33, 2, 2, "#ffffff"); px(x + 5, 37, 1, 1, "#ffffff");
+    px(x + 2, 39, 4, 1, shade(line, 60));
+    px(x + 1, 27, 6, 1, hd); px(flip ? x + 1 : x + 5, 26, 2, 1, hd);
+  }
+  if (L.blush) for (const x of [20, 40]) { px(x, 41, 1, 2, "#ff8fb8"); px(x + 2, 41, 1, 2, "#ff8fb8"); px(x + 4, 41, 1, 2, "#ff8fb8"); }
+  px(32, 41, 1, 2, sks);
+  const m = "#a8325f";
+  if (L.mouth === 0) { px(29, 45, 7, 1, m); px(28, 44, 1, 1, m); px(36, 44, 1, 1, m); }
+  if (L.mouth === 1) { px(30, 44, 5, 3, m); px(31, 46, 3, 1, "#ff8fb0"); }
+  if (L.mouth === 2) { px(28, 45, 2, 1, m); px(30, 44, 1, 1, m); px(31, 45, 3, 1, m); px(34, 44, 1, 1, m); px(35, 45, 2, 1, m); }
+  if (L.mouth === 3) px(30, 45, 4, 1, m);
+  if (L.mouth === 4) { px(29, 44, 6, 2, m); px(30, 44, 4, 1, "#ffffff"); }
+  // hair top, sides and fringe with strands + shine
+  px(24, 7, 16, 1, hair); px(21, 8, 22, 1, hair); px(19, 9, 26, 1, hair); px(17, 10, 30, 10, hair);
+  px(15, 16, 5, 30, hair); px(44, 16, 5, 30, hair); px(15, 40, 4, 8, hd); px(45, 40, 4, 8, hd);
+  if (S === 1) { px(14, 44, 6, 32, hair); px(44, 44, 6, 32, hair); px(16, 50, 1, 22, hd); px(47, 50, 1, 22, hd); }
+  for (let i = 0; i < 7; i++) {
+    const x = 18 + i * 4, len = L.bangs[i];
+    px(x, 18, 4, len - 2, hair); px(x + 1, 16 + len, 2, 2, hair); px(x + (i % 2 ? 0 : 3), 20, 1, len - 6, hd);
+  }
+  for (let x = 22; x <= 42; x++) if ((x + 1) % 5) px(x, x < 32 ? 12 + Math.round((32 - x) / 6) : 12 + Math.round((x - 32) / 6), 1, 2, hl);   // shine ring
+  px(26, 9, 4, 1, hl);
+  if (S === 3) for (const [x, y] of [[16, 2], [23, 0], [31, -1], [39, 0], [45, 3]]) { px(x, y + 5, 6, 5, hair); px(x + 1, y + 2, 4, 3, hair); px(x + 2, y, 2, 2, hair); }
+  if (S === 5) { for (const [x, y, w] of [[12, 22, 4], [11, 30, 5], [48, 24, 4], [48, 32, 5]]) px(x, y, w, 3, hair); px(20, 4, 4, 4, hair); px(38, 4, 4, 4, hair); }
+  if (S === 6) { px(31, 3, 2, 5, hair); px(33, 1, 2, 3, hair); px(35, 0, 2, 2, hair); }
+  // accessories
+  const A = L.acc;
+  if (A === 1) for (const x of [15, 41]) { for (let i = 0; i < 10; i++) px(x + Math.floor(i / 2), 1 + i, 8 - 2 * Math.floor(i / 2), 1, hair); px(x + 3, 5, 2, 4, "#ff9cc7"); }
+  if (A === 2) { px(40, 6, 6, 8, L.accent); px(50, 6, 6, 8, L.accent); px(46, 8, 4, 4, shade(L.accent, -40)); px(41, 7, 2, 2, shade(L.accent, 50)); px(47, 13, 2, 6, L.accent); }
+  if (A === 3) for (const x of [20, 35]) { px(x, 31, 10, 1, line); px(x, 40, 10, 1, line); px(x, 31, 1, 10, line); px(x + 9, 31, 1, 10, line); px(30, 34, 5, 1, line); px(x + 1, 32, 2, 1, "#ffffffaa"); }
+  if (A === 4) { px(18, 13, 7, 1, "#ffd23f"); px(21, 10, 1, 7, "#ffd23f"); px(19, 11, 5, 5, "#ffd23f"); px(20, 12, 1, 1, "#fff6c4"); }
+  if (A === 5) { px(17, 12, 30, 3, L.accent); px(17, 12, 30, 1, shade(L.accent, 50)); }
+  if (A === 6) { px(20, 0, 24, 1, "#ffe066"); px(18, 1, 3, 1, "#ffe066"); px(43, 1, 3, 1, "#ffe066"); px(20, 2, 24, 1, "#ffe066"); px(22, 1, 20, 1, "#fff6c4"); }
+  if (A === 7) for (const x of [17, 43]) { px(x, 4, 4, 7, "#f4efe4"); px(x + (x < 30 ? 1 : 0), 1, 3, 3, "#f4efe4"); px(x, 8, 4, 1, "#d8cfbf"); }
+  if (A === 8) { px(16, 6, 32, 3, "#2a2140"); px(12, 26, 6, 12, L.accent); px(46, 26, 6, 12, L.accent); px(13, 28, 4, 8, shade(L.accent, -30)); px(47, 28, 4, 8, shade(L.accent, -30)); px(14, 8, 3, 18, "#2a2140"); px(47, 8, 3, 18, "#2a2140"); }
+  if (A === 9) { for (const [x, y] of [[40, 9], [44, 11], [41, 13]]) { px(x, y, 4, 4, "#ffffff"); px(x + 1, y + 1, 2, 2, "#ffd23f"); } px(39, 12, 2, 2, "#3cbf6a"); }
+}
+
+// draws (and remembers) a portrait; full art cards are taller
+const portraitCache = {};
+function makePortrait(k, stars, full) {
+  const key = k + ":" + stars + ":" + (full ? 1 : 0);
+  if (portraitCache[key]) return portraitCache[key];
+  const L = charInfo(k).look, W = 64, H = full ? 112 : 84, oy = full ? 14 : 0;
+  const bg = document.createElement("canvas"); bg.width = W; bg.height = H;
+  const bc = bg.getContext("2d");
+  drawBackground(bc, W, H, k, stars, L.theme);
+  const ch = document.createElement("canvas"); ch.width = W; ch.height = H;
+  const cc = ch.getContext("2d");
+  drawCharacter(cc, L, H, oy);
+  // pixel outline: any empty pixel touching the character turns dark
+  const img = cc.getImageData(0, 0, W, H), d = img.data, a = (x, y) => (x < 0 || y < 0 || x >= W || y >= H) ? 0 : d[(y * W + x) * 4 + 3];
+  const edge = [];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++)
+    if (!a(x, y) && (a(x - 1, y) || a(x + 1, y) || a(x, y - 1) || a(x, y + 1))) edge.push(x, y);
+  bc.drawImage(ch, 0, 0);
+  bc.fillStyle = "#2a2140";
+  for (let i = 0; i < edge.length; i += 2) if (edge[i + 1] < H - 1) bc.fillRect(edge[i], edge[i + 1], 1, 1);
+  if (stars >= 4) { const r = rng(k * 7 + stars); bc.fillStyle = "#ffffff";
+    for (let i = 0; i < 6; i++) { const x = 3 + Math.floor(r() * 58), y = 3 + Math.floor(r() * (H - 30)); bc.fillRect(x, y - 2, 1, 5); bc.fillRect(x - 2, y, 5, 1); } }
+  return (portraitCache[key] = bg);
+}
+// dark "who's that?" silhouette for cards you haven't found yet
+const silCache = {};
+function drawSilhouette(cv, k) {
+  if (!silCache[k]) {
+    const W = 64, H = 84, ch = document.createElement("canvas"); ch.width = W; ch.height = H;
+    const c = ch.getContext("2d");
+    drawCharacter(c, charInfo(k).look, H, 0);
+    c.globalCompositeOperation = "source-in"; c.fillStyle = FALLOUT ? "#1f9a48" : "#5a6fb8"; c.fillRect(0, 0, W, H);
+    const out = document.createElement("canvas"); out.width = W; out.height = H;
+    const o = out.getContext("2d");
+    o.fillStyle = FALLOUT ? "#0a1f10" : "#dfeefc"; o.fillRect(0, 0, W, H);
+    o.fillStyle = FALLOUT ? "#0d2a16" : "#cfe3f8";
+    for (let y = 2; y < H; y += 6) for (let x = (y / 6) % 2 ? 2 : 5; x < W; x += 6) o.fillRect(x, y, 2, 2);
+    o.drawImage(ch, 0, 0);
+    silCache[k] = out;
+  }
+  cv.width = 64; cv.height = 84; cv.getContext("2d").drawImage(silCache[k], 0, 0);
+}
+function drawPortrait(cv, k, stars, full) {
+  const src = makePortrait(k, stars, full);
+  cv.width = src.width; cv.height = src.height;
+  cv.getContext("2d").drawImage(src, 0, 0);
+}
+
+// ------------------------------------------------------------------ servers
+const fakeEmail = u => u.toLowerCase() + "@players.example.com";
+class SupaAPI {
+  constructor() { this.sb = supabase.createClient(CFG.url, CFG.key); this.demo = false; }
+  async me(u) {
+    const {data} = await this.sb.from("profiles").select("username").eq("id", u.id).maybeSingle();
+    return {id: u.id, username: data ? data.username : (u.user_metadata || {}).username || "player"};
+  }
+  async session() { const {data} = await this.sb.auth.getSession(); return data.session ? this.me(data.session.user) : null; }
+  async signUp(name, pw) {
+    const {data: taken} = await this.sb.from("profiles").select("id").ilike("username", name.replace(/_/g, "\\_"));
+    if (taken && taken.length) throw Error("that username is taken");
+    const {data, error} = await this.sb.auth.signUp({email: fakeEmail(name), password: pw, options: {data: {username: name}}});
+    if (error) throw Error(error.message.includes("registered") ? "that username is taken" : error.message);
+    if (!data.session) throw Error("account made, but the server still has 'confirm email' turned on - ask the owner to switch it off");
+    return this.me(data.user);
+  }
+  async signIn(name, pw) {
+    const {data, error} = await this.sb.auth.signInWithPassword({email: fakeEmail(name), password: pw});
+    if (error) throw Error(/invalid/i.test(error.message) ? "wrong username or password" : error.message);
+    return this.me(data.user);
+  }
+  async signOut() { await this.sb.auth.signOut(); }
+  async serverNow() { const {data, error} = await this.sb.rpc("server_now"); if (error) throw error; return Number(data); }
+  async claim(slot) { const {data, error} = await this.sb.rpc("claim_card", {p_slot: slot}); if (error) throw Error(error.message); return data; }
+  async dropClaims(d) {
+    const {data, error} = await this.sb.from("claims").select("slot,user_id,claimed_by,claimer_name,character_id,stars,finish,print_no").eq("drop_id", d);
+    if (error) throw error;
+    return data.map(c => ({...c, username: c.claimer_name}));
+  }
+  async myCards(uid) {
+    const {data, error} = await this.sb.from("claims").select("id,character_id,stars,finish,print_no,claimed_at").eq("user_id", uid).order("claimed_at", {ascending: false}).limit(1000);
+    if (error) throw error; return data;
+  }
+  async board() { const {data} = await this.sb.from("leaderboard").select("*").limit(25); return data || []; }
+  async announcements(since) {
+    const {data} = await this.sb.from("announcements").select("*").gt("id", since).order("id", {ascending: true}).limit(20); return data || [];
+  }
+  async bigPulls() { const {data} = await this.sb.from("announcements").select("*").order("id", {ascending: false}).limit(12); return data || []; }
+  async rpc(fn, args) { const {data, error} = await this.sb.rpc(fn, args); if (error) throw Error(error.message); return data; }
+  // trading
+  async players() { const {data} = await this.sb.from("profiles").select("id,username").order("username").limit(60); return data || []; }
+  async findPlayer(name) {
+    const {data} = await this.sb.from("profiles").select("id,username").ilike("username", name.replace(/_/g, "\\_"));
+    return (data || []).find(p => p.username.toLowerCase() === name.toLowerCase()) || null;
+  }
+  async propose(to, offer, want) { return this.rpc("propose_trade", {p_to: to, p_offer: offer, p_want: want}); }
+  async respondTrade(id, ok) { return this.rpc("respond_trade", {p_trade: id, p_accept: ok}); }
+  async cancelTrade(id) { return this.rpc("cancel_trade", {p_trade: id}); }
+  async trades() { return this.rpc("my_trades"); }
+  // friends + messages
+  async social() { return this.rpc("my_social"); }
+  async friendRequest(name) { return this.rpc("send_friend_request", {p_name: name}); }
+  async respondFriend(id, ok) { return this.rpc("respond_friend", {p_other: id, p_accept: ok}); }
+  async removeFriend(id) { return this.rpc("remove_friend", {p_other: id}); }
+  async chat(id) { return this.rpc("chat_with", {p_other: id}); }
+  async sendMessage(id, body) { return this.rpc("send_message", {p_to: id, p_body: body}); }
+}
+
+// Demo mode: everything is saved in this browser only, and "PixelBot" plays, trades and chats with you.
+const BOT = {id: "bot", username: "PixelBot"};
+const BOT_LINES = ["beep boop! nice to meet you :)", "have you pulled a 5 star yet? i'm still waiting...",
+  "i'll trade, but only if it's a fair deal!", "full art cards are my favourite", "the next drop is mine. probably.",
+  "01001000 01001001 (that means hi)", "PixelBot is always online. always.", "good luck at the next drop!"];
+class DemoAPI {
+  constructor() { this.demo = true; }
+  load(k, d) { try { return JSON.parse(localStorage.getItem("dp_demo_" + k)) ?? d; } catch (e) { return d; } }
+  save(k, v) { try { localStorage.setItem("dp_demo_" + k, JSON.stringify(v)); } catch (e) {} }
+  me() { return this.load("session", null); }
+  nextId() { const n = this.load("nextid", 1); this.save("nextid", n + 1); return n; }
+  all() {  // every card in demo mode, tidied up (older saves didn't have ids)
+    const c = this.load("claims", []).filter(x => x.stars);
+    let changed = false;
+    for (const x of c) {
+      if (!x.id) { x.id = this.nextId(); changed = true; }
+      if (!x.claimed_by) { x.claimed_by = x.user_id; x.claimer_name = x.username; changed = true; }
+    }
+    if (!c.some(x => x.user_id === "bot")) {   // PixelBot starts with a few cards so there's something to trade for
+      for (let k = 1; k <= 4; k++) {
+        const {cid, stars, finish} = cardFor(k * 37, 0);
+        c.push({id: this.nextId(), drop_id: -k, slot: 0, user_id: "bot", claimed_by: "bot", claimer_name: "PixelBot",
+          username: "PixelBot", character_id: cid, stars, finish, print_no: 1, claimed_at: Date.now() - k});
+      }
+      changed = true;
+    }
+    if (changed) this.save("claims", c);
+    return c;
+  }
+  async session() { return this.me(); }
+  announce(row) {
+    if (row.stars === 5 || row.finish === "full") {
+      const a = this.load("ann", []);
+      a.push({id: this.nextId(), username: row.claimer_name, character_id: row.character_id, stars: row.stars, finish: row.finish,
+        print_no: row.print_no, created_at: new Date().toISOString()});
+      this.save("ann", a.slice(-50));
+    }
+  }
+  async announcements(since) { return this.load("ann", []).filter(a => a.id > since).slice(0, 20); }
+  async bigPulls() { return this.load("ann", []).slice(-12).reverse(); }
+  async signUp(name, pw) {
+    const users = this.load("users", {});
+    if (users[name.toLowerCase()] || name.toLowerCase() === "pixelbot") throw Error("that username is taken");
+    users[name.toLowerCase()] = {pw, username: name}; this.save("users", users);
+    const u = {id: "demo-" + name.toLowerCase(), username: name}; this.save("session", u); return u;
+  }
+  async signIn(name, pw) {
+    const u = this.load("users", {})[name.toLowerCase()];
+    if (!u || u.pw !== pw) throw Error("wrong username or password");
+    const s = {id: "demo-" + name.toLowerCase(), username: u.username}; this.save("session", s); return s;
+  }
+  async signOut() { this.save("session", null); }
+  async serverNow() { return Date.now() / 1000 + this.load("skew", 0); }
+  bots(d, claims) {  // PixelBot grabs one card 25-115 seconds into each drop
+    const phase = (Date.now() / 1000 + this.load("skew", 0)) - d * DROP_EVERY;
+    const s = Number(cardRoll(d, 9) % 3n), when = 25 + Number(cardRoll(d, s) % 90n);
+    if (phase > when && !claims.some(c => c.drop_id === d && (c.slot === s || c.claimed_by === "bot"))) {
+      const {cid, stars, finish} = cardFor(d, s);
+      claims.push({id: this.nextId(), drop_id: d, slot: s, user_id: "bot", claimed_by: "bot", claimer_name: "PixelBot", username: "PixelBot",
+        character_id: cid, stars, finish, print_no: claims.filter(c => c.character_id === cid).length + 1, claimed_at: Date.now()});
+      this.announce(claims[claims.length - 1]);
+    }
+  }
+  async claim(slot) {
+    const me = this.me(); if (!me) throw Error("please log in first");
+    const now = await this.serverNow(), d = Math.floor(now / DROP_EVERY);
+    if (now - d * DROP_EVERY > DROP_WINDOW) throw Error("this drop has ended");
+    const claims = this.all(); this.bots(d, claims);
+    if (claims.some(c => c.drop_id === d && c.claimed_by === me.id)) throw Error("you already grabbed a card from this drop");
+    if (claims.some(c => c.drop_id === d && c.slot === slot)) { this.save("claims", claims); throw Error("too slow! someone else grabbed it"); }
+    const {cid, stars, finish} = cardFor(d, slot);
+    const row = {id: this.nextId(), drop_id: d, slot, user_id: me.id, claimed_by: me.id, claimer_name: me.username, username: me.username,
+      character_id: cid, stars, finish, print_no: claims.filter(c => c.character_id === cid).length + 1, claimed_at: Date.now()};
+    claims.push(row); this.save("claims", claims); this.announce(row);
+    return {character_id: cid, stars, finish, print_no: row.print_no};
+  }
+  async dropClaims(d) { const c = this.all(); this.bots(d, c); this.save("claims", c); return c.filter(x => x.drop_id === d).map(x => ({...x, username: x.claimer_name})); }
+  async myCards(uid) { return this.all().filter(c => c.user_id === uid).sort((a, b) => b.claimed_at - a.claimed_at); }
+  nameOf(id) { if (id === "bot") return "PixelBot"; const u = this.load("users", {})[String(id).replace("demo-", "")]; return u ? u.username : "?"; }
+  async board() {
+    const t = {};
+    this.all().forEach(c => { const n = this.nameOf(c.user_id); const u = t[n] ||= {username: n, cards: 0, points: 0}; u.cards++; u.points += cardPoints(c); });
+    return Object.values(t).sort((a, b) => b.points - a.points);
+  }
+  dropNow() { const now = Date.now() / 1000 + this.load("skew", 0); this.save("skew", this.load("skew", 0) + (DROP_EVERY - (now % DROP_EVERY)) + 1); }
+  // ---- trading
+  async players() { return [BOT, ...Object.values(this.load("users", {})).map(u => ({id: "demo-" + u.username.toLowerCase(), username: u.username}))]; }
+  async findPlayer(name) { return (await this.players()).find(p => p.username.toLowerCase() === name.toLowerCase()) || null; }
+  async propose(to, offer, want) {
+    const me = this.me(), target = await this.findPlayer(to);
+    if (!target) throw Error("there is no player called " + to);
+    if (target.id === me.id) throw Error("you can't trade with yourself");
+    if (!offer.length && !want.length) throw Error("pick at least one card");
+    if (offer.length > 5 || want.length > 5) throw Error("max 5 cards on each side");
+    const c = this.all();
+    if (!offer.every(id => c.some(x => x.id === id && x.user_id === me.id))) throw Error("you don't own all of those cards any more");
+    if (!want.every(id => c.some(x => x.id === id && x.user_id === target.id))) throw Error(to + " doesn't own all of those cards any more");
+    const t = this.load("trades", []);
+    t.push({id: this.nextId(), from: me.id, to: target.id, offer, want, status: "pending", created_at: Date.now()});
+    this.save("trades", t);
+  }
+  swap(tr) {
+    const c = this.all();
+    const ok = tr.offer.every(id => c.some(x => x.id === id && x.user_id === tr.from)) && tr.want.every(id => c.some(x => x.id === id && x.user_id === tr.to));
+    if (!ok) return "failed";
+    c.forEach(x => { if (tr.offer.includes(x.id)) x.user_id = tr.to; else if (tr.want.includes(x.id)) x.user_id = tr.from; });
+    this.save("claims", c); return "accepted";
+  }
+  botThinks(list) {  // PixelBot answers your offers after a couple of seconds
+    const c = this.all(), val = ids => ids.reduce((n, id) => n + cardPoints(c.find(x => x.id === id) || {stars: 1, finish: "normal"}), 0);
+    for (const tr of list) if (tr.to === "bot" && tr.status === "pending" && Date.now() - tr.created_at > 2500) {
+      const fair = tr.want.length === 0 || val(tr.offer) >= val(tr.want) * 0.9;
+      tr.status = fair ? this.swap(tr) : "declined"; tr.decided_at = Date.now();
+    }
+  }
+  async respondTrade(id, ok) {
+    const t = this.load("trades", []), tr = t.find(x => x.id === id), me = this.me();
+    if (!tr || tr.to !== me.id) throw Error("that offer isn't for you");
+    if (tr.status !== "pending") throw Error("that offer is already " + tr.status);
+    tr.status = ok ? this.swap(tr) : "declined"; tr.decided_at = Date.now(); this.save("trades", t); return tr.status;
+  }
+  async cancelTrade(id) {
+    const t = this.load("trades", []), tr = t.find(x => x.id === id && x.from === this.me().id && x.status === "pending");
+    if (!tr) throw Error("that offer can't be cancelled");
+    tr.status = "cancelled"; tr.decided_at = Date.now(); this.save("trades", t);
+  }
+  async trades() {
+    const t = this.load("trades", []); this.botThinks(t); this.save("trades", t);
+    const me = this.me().id, c = this.all(), cards = ids => ids.map(id => c.find(x => x.id === id)).filter(Boolean);
+    return t.filter(x => x.from === me || x.to === me).reverse().slice(0, 30).map(x => ({id: x.id, status: x.status, outgoing: x.from === me,
+      from_name: this.nameOf(x.from), to_name: this.nameOf(x.to), offer: cards(x.offer), want: cards(x.want)}));
+  }
+  // ---- friends + messages
+  key(a, b) { return [a, b].sort().join("|"); }
+  async social() {
+    const me = this.me().id, f = this.load("friends", {});
+    for (const k in f) if (k.includes("bot") && f[k].status === "pending") f[k].status = "accepted";   // PixelBot says yes to everyone
+    this.save("friends", f);
+    const msgs = this.load("msgs", []), t = this.load("trades", []); this.botThinks(t); this.save("trades", t);
+    const friends = Object.entries(f).filter(([k]) => k.split("|").includes(me)).map(([k, v]) => {
+      const other = k.split("|").find(x => x !== me);
+      return {id: other, username: this.nameOf(other), state: v.status === "accepted" ? "friend" : v.by === me ? "outgoing" : "incoming",
+        unread: msgs.filter(m => m.from === other && m.to === me && !m.read && m.at <= Date.now()).length};
+    });
+    return {friends, trades_waiting: t.filter(x => x.to === me && x.status === "pending").length};
+  }
+  async friendRequest(name) {
+    const me = this.me().id, p = await this.findPlayer(name);
+    if (!p) throw Error("there is no player called " + name);
+    if (p.id === me) throw Error("you can't friend yourself");
+    const f = this.load("friends", {}), k = this.key(me, p.id);
+    if (f[k]) { if (f[k].status === "accepted") return "already friends"; if (f[k].by === p.id) { f[k].status = "accepted"; this.save("friends", f); return "accepted"; } return "already sent"; }
+    f[k] = {status: "pending", by: me}; this.save("friends", f); return "sent";
+  }
+  async respondFriend(id, ok) {
+    const f = this.load("friends", {}), k = this.key(this.me().id, id);
+    if (f[k] && f[k].status === "pending" && f[k].by === id) { if (ok) f[k].status = "accepted"; else delete f[k]; }
+    this.save("friends", f);
+  }
+  async removeFriend(id) { const f = this.load("friends", {}); delete f[this.key(this.me().id, id)]; this.save("friends", f); }
+  async chat(id) {
+    const me = this.me().id, m = this.load("msgs", []);
+    m.forEach(x => { if (x.from === id && x.to === me && x.at <= Date.now()) x.read = true; }); this.save("msgs", m);
+    return m.filter(x => ((x.from === me && x.to === id) || (x.from === id && x.to === me)) && x.at <= Date.now()).slice(-100)
+            .map(x => ({mine: x.from === me, body: x.body, created_at: x.at}));
+  }
+  async sendMessage(id, body) {
+    const me = this.me().id, f = this.load("friends", {})[this.key(me, id)];
+    if (!f || f.status !== "accepted") throw Error("you can only message your friends");
+    body = body.trim(); if (!body) throw Error("type a message first"); if (body.length > 500) throw Error("messages can be up to 500 characters");
+    const m = this.load("msgs", []); m.push({from: me, to: id, body, at: Date.now()});
+    if (id === "bot") m.push({from: "bot", to: me, body: BOT_LINES[m.length % BOT_LINES.length], at: Date.now() + 1500});
+    this.save("msgs", m);
+  }
+}
+
+// ------------------------------------------------------------------ app
+const S = {cardsMode: "mine", ixSeries: "all", ixLimit: 60, bigPulls: [], annSeen: null, annQueue: [], annShowing: false, social: {friends: [], trades_waiting: 0}, trades: [], players: [], tr: {target: null, theirs: [], give: [], get: []},
+  chatWith: null, chat: [], removeArm: null, api: null, user: null, tab: "drop", offset: 0, claims: [], lastDrop: -1, mine: [], board: [], sort: "new", busy: false};
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, ch => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[ch]));
+const now = () => Date.now() / 1000 + S.offset;
+const mmss = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+function toast(msg) { const t = document.createElement("div"); t.className = "toast"; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3200); }
+
+function cardHTML(cid, stars, finish, print, extra = "") {
+  const ch = charInfo(cid), code = String(cid).padStart(4, "0") + "·" + (print || "?");
+  const tag = finish === "holo" ? "HOLO" : finish === "full" ? "FULL ART" : "";
+  return `<div class="card s${stars} ${finish}" data-cid="${cid}" data-s="${stars}" data-f="${finish}" data-p="${print || ""}">
+    <div class="plate">${esc(ch.name)}</div>
+    <div class="art"><canvas data-cid="${cid}" data-s="${stars}" data-f="${finish}"></canvas></div>
+    <div class="plate sr">${esc(ch.series)}</div>
+    <div class="foot"><span class="stars">${"★".repeat(stars)}${"☆".repeat(5 - stars)}</span><span class="code">${code}</span></div>
+    ${tag ? `<span class="tag">${tag}</span>` : ""}${extra}</div>`;
+}
+function paintCards(root = document) { root.querySelectorAll("canvas[data-cid]").forEach(cv => cv.dataset.sil ? drawSilhouette(cv, +cv.dataset.cid) : drawPortrait(cv, +cv.dataset.cid, +cv.dataset.s, cv.dataset.f === "full")); }
+const cardLabel = c => `${c.stars}★${c.finish === "holo" ? " HOLO" : c.finish === "full" ? " FULL ART" : ""}`;
+
+function shell(inner) {
+  const demo = S.api && S.api.demo;
+  return `<div class="top"><span class="me">${FALLOUT ? "&gt; USER: " : "♥ "}${esc(S.user.username)}${demo ? " (demo)" : ""}</span>
+      ${WEB ? `<button class="alt" id="skinbtn" title="switch skin">${FALLOUT ? "♥" : "☢"}</button>` : ""}${demo ? '<button class="alt" id="dropnow">DROP NOW</button>' : ""}<button class="alt" id="logout">LOG OUT</button></div>
+    <div class="tabs">${["drop", "cards", "trade", "friends", "top"].map(t => `<button data-tab="${t}" class="${S.tab === t ? "on" : ""}">${{drop: "DROP", cards: "CARDS", trade: "TRADE", friends: "FRIENDS", top: "TOP"}[t]}<span class="badge" id="b-${t}"></span></button>`).join("")}</div>
+    <div class="win"><div class="bar"><b>${{drop: "CARD_DROP.EXE", cards: "COLLECTION.EXE", trade: "TRADE.EXE", friends: S.chatWith ? "CHAT.EXE" : "FRIENDS.EXE", top: "LEADERBOARD.EXE"}[S.tab]}</b><span class="dot"></span><span class="dot"></span></div><div class="pad" id="view">${inner}</div></div>`;
+}
+function bindShell() {
+  document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { if (b.dataset.tab !== "friends") S.chatWith = null; S.tab = b.dataset.tab; render(true); });
+  paintBadges();
+  $("logout").onclick = async () => { await S.api.signOut(); S.user = null; render(true); };
+  if ($("skinbtn")) $("skinbtn").onclick = () => { try { localStorage.setItem("dp_skin", FALLOUT ? "pixels" : "fallout"); } catch (e) {} location.reload(); };
+  if ($("dropnow")) $("dropnow").onclick = async () => { S.api.dropNow(); S.offset = (await S.api.serverNow()) - Date.now() / 1000; refreshDrop(); };
+}
+
+function dropView() {
+  const t = now(), d = Math.floor(t / DROP_EVERY), phase = t - d * DROP_EVERY, active = phase < DROP_WINDOW;
+  const myClaim = S.claims.find(c => c.claimed_by === S.user.id);
+  let h = active
+    ? `<h1 class="flash">CARDS DROPPED!</h1><div class="small">grab one before they're gone</div><div class="timer" id="tm">${mmss(DROP_WINDOW - phase)}</div>`
+    : `<h1>NEXT DROP</h1><div class="timer" id="tm">${mmss(DROP_EVERY - phase)}</div><div class="small">3 cards drop every 15 minutes</div>`;
+  h += `<div class="row3">`;
+  for (let s = 0; s < SLOTS; s++) {
+    const {cid, stars, finish} = cardFor(d, s), c = S.claims.find(x => x.slot === s);
+    const over = c ? `<div class="over ${c.claimed_by === S.user.id ? "mine" : ""}">${c.claimed_by === S.user.id ? "YOU GOT IT!" : "CLAIMED BY"}<br>${esc(c.username)}<br>#${c.print_no}</div>`
+                   : (!active ? `<div class="over">EXPIRED</div>` : "");
+    h += `<div>${cardHTML(cid, stars, finish, c ? c.print_no : "", over)}
+      ${active ? `<button class="grab" data-slot="${s}" ${c || myClaim || S.busy ? "disabled" : ""}>${c ? "GONE" : "GRAB!"}</button>` : ""}</div>`;
+  }
+  h += `</div><div class="rates">★ 50% · ★★ 28% · ★★★ 14% · ★★★★ 6.5% · ★★★★★ 1.5%<br>holo 12.5% · full art 2.5% · one card each · first click wins</div>`;
+  return h;
+}
+function bindDrop() {
+  document.querySelectorAll("button.grab").forEach(b => b.onclick = async () => {
+    S.busy = true; render();
+    try { const r = await S.api.claim(+b.dataset.slot); setTimeout(checkAnnouncements, 800); toast(`YOU GOT ${charInfo(r.character_id).name.toUpperCase()}! (${cardLabel(r)} #${r.print_no})`); }
+    catch (e) { toast(e.message.toUpperCase()); }
+    S.busy = false; await refreshDrop();
+  });
+}
+async function refreshDrop() {
+  const d = Math.floor(now() / DROP_EVERY);
+  try { S.claims = await S.api.dropClaims(d); } catch (e) {}
+  S.lastDrop = d; if (S.tab === "drop") render();
+}
+
+function cardsView() {
+  const sw = `<div class="seg"><button class="${S.cardsMode === "mine" ? "on" : ""}" data-mode="mine">MY CARDS</button><button class="${S.cardsMode === "index" ? "on" : ""}" data-mode="index">INDEX</button></div>`;
+  return sw + (S.cardsMode === "index" ? indexView() : myCardsView());
+}
+// ------------------------------------------------------------------ card index (collection book)
+function indexView() {
+  const best = {};
+  for (const c of S.mine) if (!best[c.character_id] || cardPoints(c) > cardPoints(best[c.character_id])) best[c.character_id] = c;
+  const found = Object.keys(best).length;
+  const all = Array.from({length: POOL}, (_, k) => k);
+  const inSeries = k => S.ixSeries === "all" || charInfo(k).series === S.ixSeries;
+  const list = all.filter(inSeries);
+  const seriesRows = SERIES.map(se => {
+    const ks = all.filter(k => charInfo(k).series === se), got = ks.filter(k => best[k]).length;
+    return {se, got, total: ks.length};
+  });
+  let h = `<div class="ixhead"><b>${found} / ${POOL}</b> found (${Math.floor(found / POOL * 100)}%)
+      <div class="bar2"><i style="width:${found / POOL * 100}%"></i></div></div>
+    <select id="ixseries"><option value="all">ALL SERIES</option>${seriesRows.map(r => `<option value="${esc(r.se)}" ${S.ixSeries === r.se ? "selected" : ""}>${esc(r.se)}  (${r.got}/${r.total})${r.got === r.total ? " ✓" : ""}</option>`).join("")}</select>`;
+  if (S.ixSeries !== "all") { const r = seriesRows.find(x => x.se === S.ixSeries);
+    h += `<div class="small">${esc(r.se)}: ${r.got} / ${r.total}${r.got === r.total ? " - COMPLETE! ★" : ""}</div>`; }
+  h += `<div class="ixgrid">${list.slice(0, S.ixLimit).map(k => {
+    const b = best[k];
+    return `<div class="ix ${b ? "got" : "missing"}" data-k="${k}"><canvas data-cid="${k}" data-s="${b ? b.stars : 1}" data-f="normal" ${b ? "" : 'data-sil="1"'}></canvas>
+      <div class="ixn">#${String(k + 1).padStart(3, "0")}</div><div class="ixname">${b ? esc(charInfo(k).name) : "???"}</div></div>`;
+  }).join("")}</div>`;
+  if (list.length > S.ixLimit) h += `<button class="wide alt" id="ixmore">SHOW MORE (${list.length - S.ixLimit} left)</button>`;
+  return h;
+}
+function bindIndex() {
+  $("ixseries").onchange = e => { S.ixSeries = e.target.value; S.ixLimit = 60; render(); };
+  if ($("ixmore")) $("ixmore").onclick = () => { S.ixLimit += 60; render(); };
+  document.querySelectorAll(".ix").forEach(el => el.onclick = () => {
+    const k = +el.dataset.k, mine = S.mine.filter(c => c.character_id === k);
+    if (!mine.length) return toast(`#${String(k + 1).padStart(3, "0")} NOT FOUND YET - KEEP GRABBING!`);
+    const b = mine.reduce((x, y) => cardPoints(y) > cardPoints(x) ? y : x);
+    const m = document.createElement("div"); m.className = "modal";
+    m.innerHTML = cardHTML(b.character_id, b.stars, b.finish, b.print_no) + `<div class="modalnote">you own ${mine.length} cop${mine.length > 1 ? "ies" : "y"} · best shown</div>`;
+    m.onclick = () => m.remove(); document.body.appendChild(m); paintCards(m);
+  });
+}
+function myCardsView() {
+  const list = [...S.mine].sort((a, b) => S.sort === "rarity" ? cardPoints(b) - cardPoints(a) || a.print_no - b.print_no : 0);
+  const pts = S.mine.reduce((n, c) => n + cardPoints(c), 0);
+  return `<div class="small">${S.mine.length} cards · ${pts} points &nbsp; <select id="sort"><option value="new">newest</option><option value="rarity" ${S.sort === "rarity" ? "selected" : ""}>rarity</option></select></div>
+    ${list.length ? `<div class="grid">${list.map(c => cardHTML(c.character_id, c.stars, c.finish, c.print_no)).join("")}</div>` : `<p class="small" style="margin-top:20px">no cards yet - grab one at the next drop!</p>`}`;
+}
+function bindCards() {
+  document.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => { S.cardsMode = b.dataset.mode; render(); });
+  if (S.cardsMode === "index") return bindIndex();
+  $("sort").onchange = e => { S.sort = e.target.value; render(true); };
+  document.querySelectorAll(".grid .card").forEach(el => el.onclick = () => {
+    const m = document.createElement("div"); m.className = "modal";
+    m.innerHTML = cardHTML(+el.dataset.cid, +el.dataset.s, el.dataset.f, el.dataset.p);
+    m.onclick = () => m.remove(); document.body.appendChild(m); paintCards(m);
+  });
+}
+function bigPullsHTML() {
+  if (!S.bigPulls.length) return "";
+  return `<div class="sec">📢 BIG PULLS</div>` + S.bigPulls.map(a => `<div class="bp"><div class="bpcard">${cardHTML(a.character_id, a.stars, a.finish, a.print_no)}</div>
+    <div><b>${esc(a.username)}</b> pulled <b>${annLabel(a)}</b><br>${esc(charInfo(a.character_id).name)} #${a.print_no}</div></div>`).join("");
+}
+function topView() {
+  if (!S.board.length) return `<p class="small">nobody has any cards yet!</p>` + bigPullsHTML();
+  return bigPullsHTML() + `<div class="sec">LEADERBOARD</div><table class="lb">${S.board.map((u, i) => `<tr class="${u.username === S.user.username ? "me" : ""}"><td>${i + 1}.</td><td>${esc(u.username)}</td><td>${u.points} pts</td><td>${u.cards} cards</td></tr>`).join("")}</table>
+    <div class="rates">points: ★1 · ★★3 · ★★★8 · ★★★★20 · ★★★★★60 · holo ×2 · full art ×4</div>`;
+}
+
+// ------------------------------------------------------------------ trading
+const mini = (c, sel, extra = "") => `<div class="pick ${sel ? "sel" : ""}" data-id="${c.id}" ${extra}>${cardHTML(c.character_id, c.stars, c.finish, c.print_no)}</div>`;
+const valueOf = list => list.reduce((n, c) => n + cardPoints(c), 0);
+function tradeView() {
+  const T = S.tr, friends = S.social.friends.filter(f => f.state === "friend");
+  const picks = [...new Map([...friends, ...S.players].filter(p => p.id !== S.user.id).map(p => [p.username, p])).values()].slice(0, 14);
+  let h = `<div class="sec">NEW TRADE</div>
+    <div class="row"><input id="who" placeholder="player name" value="${T.target ? esc(T.target.username) : ""}"><button id="find">FIND</button></div>
+    <div>${picks.map(p => `<button class="chip ${friends.some(f => f.id === p.id) ? "fr" : ""}" data-pick="${esc(p.username)}">${friends.some(f => f.id === p.id) ? "♥ " : ""}${esc(p.username)}</button>`).join("")}</div>`;
+  if (T.target) {
+    const give = S.mine.filter(c => T.give.includes(c.id)), get = T.theirs.filter(c => T.get.includes(c.id));
+    h += `<div class="lbl">YOU GIVE <span>tap up to 5 · ${valueOf(give)} pts</span></div>
+      <div class="mgrid" id="g-give">${S.mine.length ? S.mine.map(c => mini(c, T.give.includes(c.id))).join("") : `<span class="small">you have no cards yet</span>`}</div>
+      <div class="lbl">YOU GET FROM ${esc(T.target.username).toUpperCase()} <span>tap up to 5 · ${valueOf(get)} pts</span></div>
+      <div class="mgrid" id="g-get">${T.theirs.length ? T.theirs.map(c => mini(c, T.get.includes(c.id))).join("") : `<span class="small">they have no cards yet</span>`}</div>
+      <button class="wide" id="sendtrade" ${T.give.length + T.get.length ? "" : "disabled"}>SEND OFFER  (${T.give.length} ⇄ ${T.get.length})</button>`;
+  }
+  h += `<div class="sec">OFFERS</div>`;
+  if (!S.trades.length) h += `<p class="small">no offers yet</p>`;
+  for (const t of S.trades) {
+    const who = t.outgoing ? `YOU → ${esc(t.to_name)}` : `${esc(t.from_name)} → YOU`;
+    const side = (label, list) => `<div class="side"><div class="lbl2">${label}</div><div class="mgrid">${list.length ? list.map(c => mini(c, false)).join("") : `<span class="small">nothing</span>`}</div></div>`;
+    h += `<div class="offer ${t.status}"><div class="oh"><b>${who}</b><span class="st">${t.status.toUpperCase()}</span></div>
+      <div class="orow">${side(t.outgoing ? "YOU GIVE" : "THEY GIVE", t.offer)}<div class="arrow">⇄</div>${side(t.outgoing ? "YOU GET" : "YOU GIVE", t.want)}</div>
+      ${t.status === "pending" ? (t.outgoing ? `<button class="alt" data-cancel="${t.id}">CANCEL</button>`
+        : `<button data-accept="${t.id}">ACCEPT</button> <button class="alt" data-decline="${t.id}">DECLINE</button>`) : ""}</div>`;
+  }
+  return h;
+}
+function bindTrade() {
+  const T = S.tr;
+  const pick = async name => {
+    name = name.trim(); if (!name) return;
+    const p = await S.api.findPlayer(name);
+    if (!p) return toast("NO PLAYER CALLED " + name.toUpperCase());
+    if (p.id === S.user.id) return toast("THAT'S YOU!");
+    S.tr = {target: p, theirs: [], give: [], get: []}; render(true);
+  };
+  $("find").onclick = () => pick($("who").value);
+  $("who").onkeydown = e => { if (e.key === "Enter") pick($("who").value); };
+  document.querySelectorAll("[data-pick]").forEach(b => b.onclick = () => pick(b.dataset.pick));
+  const toggle = (list, id) => { const i = list.indexOf(id); if (i >= 0) list.splice(i, 1); else if (list.length >= 5) toast("MAX 5 CARDS EACH SIDE"); else list.push(id); render(); };
+  document.querySelectorAll("#g-give .pick").forEach(el => el.onclick = () => toggle(T.give, +el.dataset.id));
+  document.querySelectorAll("#g-get .pick").forEach(el => el.onclick = () => toggle(T.get, +el.dataset.id));
+  if ($("sendtrade")) $("sendtrade").onclick = async () => {
+    try { await S.api.propose(T.target.username, T.give, T.get); toast("OFFER SENT TO " + T.target.username.toUpperCase() + "!"); S.tr = {target: T.target, theirs: [], give: [], get: []}; }
+    catch (e) { toast(e.message.toUpperCase()); }
+    render(true);
+  };
+  const act = (sel, fn, msg) => document.querySelectorAll(sel).forEach(b => b.onclick = async () => {
+    try { const r = await fn(+Object.values(b.dataset)[0]); toast(msg(r)); } catch (e) { toast(e.message.toUpperCase()); }
+    render(true);
+  });
+  act("[data-accept]", id => S.api.respondTrade(id, true), r => r === "accepted" ? "TRADE DONE! CHECK YOUR CARDS" : "TRADE FAILED - THOSE CARDS ARE GONE");
+  act("[data-decline]", id => S.api.respondTrade(id, false), () => "OFFER DECLINED");
+  act("[data-cancel]", id => S.api.cancelTrade(id), () => "OFFER CANCELLED");
+}
+
+// ------------------------------------------------------------------ friends + chat
+function friendsView() {
+  const F = S.social.friends, inc = F.filter(f => f.state === "incoming"), fr = F.filter(f => f.state === "friend"), out = F.filter(f => f.state === "outgoing");
+  let h = `<div class="row"><input id="fname" placeholder="add a friend by username"><button id="addf">ADD</button></div>`;
+  if (inc.length) h += `<div class="sec">FRIEND REQUESTS</div>` + inc.map(f => `<div class="frow"><b>${esc(f.username)}</b>
+      <button data-facc="${esc(f.id)}">ACCEPT</button><button class="alt" data-fdec="${esc(f.id)}">NO</button></div>`).join("");
+  h += `<div class="sec">FRIENDS (${fr.length})</div>`;
+  h += fr.length ? fr.map(f => `<div class="frow"><b>♥ ${esc(f.username)}${f.unread ? `<span class="badge on">${f.unread}</span>` : ""}</b>
+      <button data-chat="${esc(f.id)}">CHAT</button><button class="alt" data-ftrade="${esc(f.username)}">TRADE</button>
+      <button class="alt" data-frem="${esc(f.id)}">${S.removeArm === f.id ? "SURE?" : "REMOVE"}</button></div>`).join("")
+    : `<p class="small">no friends yet - add someone above!</p>`;
+  if (out.length) h += `<div class="sec">WAITING FOR THEM</div>` + out.map(f => `<div class="frow"><b>${esc(f.username)}</b><span class="small">request sent...</span></div>`).join("");
+  return h;
+}
+function bindFriends() {
+  const add = async () => {
+    const n = $("fname").value.trim(); if (!n) return;
+    try { const r = await S.api.friendRequest(n); toast({sent: "FRIEND REQUEST SENT!", accepted: "YOU'RE NOW FRIENDS!", "already friends": "YOU'RE ALREADY FRIENDS", "already sent": "REQUEST ALREADY SENT"}[r] || r); }
+    catch (e) { toast(e.message.toUpperCase()); }
+    render(true);
+  };
+  $("addf").onclick = add; $("fname").onkeydown = e => { if (e.key === "Enter") add(); };
+  document.querySelectorAll("[data-facc]").forEach(b => b.onclick = async () => { await S.api.respondFriend(b.dataset.facc, true).catch(e => toast(e.message)); toast("NEW FRIEND!"); render(true); });
+  document.querySelectorAll("[data-fdec]").forEach(b => b.onclick = async () => { await S.api.respondFriend(b.dataset.fdec, false).catch(() => {}); render(true); });
+  document.querySelectorAll("[data-frem]").forEach(b => b.onclick = async () => {
+    if (S.removeArm !== b.dataset.frem) { S.removeArm = b.dataset.frem; render(); return; }
+    S.removeArm = null; await S.api.removeFriend(b.dataset.frem).catch(() => {}); toast("FRIEND REMOVED"); render(true);
+  });
+  document.querySelectorAll("[data-chat]").forEach(b => b.onclick = () => { S.chatWith = S.social.friends.find(f => f.id === b.dataset.chat); render(true); });
+  document.querySelectorAll("[data-ftrade]").forEach(b => b.onclick = async () => {
+    const p = await S.api.findPlayer(b.dataset.ftrade); S.tr = {target: p, theirs: [], give: [], get: []}; S.tab = "trade"; render(true);
+  });
+}
+function chatView() {
+  const C = S.chatWith;
+  return `<div class="chathead"><button class="alt" id="back">◀ BACK</button><b>♥ ${esc(C.username)}</b><button class="alt" id="ctrade">TRADE</button></div>
+    <div class="chat" id="chatbox">${S.chat.length ? S.chat.map(m => `<div class="bub ${m.mine ? "me" : ""}">${esc(m.body)}</div>`).join("") : `<p class="small">say hi to ${esc(C.username)}!</p>`}</div>
+    <div class="row"><input id="msg" maxlength="500" placeholder="type a message..." autocomplete="off"><button id="sendmsg">SEND</button></div>`;
+}
+function bindChat() {
+  const box = $("chatbox"); box.scrollTop = box.scrollHeight;
+  $("back").onclick = () => { S.chatWith = null; render(true); };
+  $("ctrade").onclick = async () => { const p = await S.api.findPlayer(S.chatWith.username); S.tr = {target: p, theirs: [], give: [], get: []}; S.chatWith = null; S.tab = "trade"; render(true); };
+  const send = async () => {
+    const t = $("msg").value; if (!t.trim()) return;
+    $("msg").value = "";
+    try { await S.api.sendMessage(S.chatWith.id, t); } catch (e) { toast(e.message.toUpperCase()); }
+    S.chat = await S.api.chat(S.chatWith.id).catch(() => S.chat); render(); $("msg").focus();
+  };
+  $("sendmsg").onclick = send; $("msg").onkeydown = e => { if (e.key === "Enter") send(); };
+  $("msg").focus();
+}
+function paintBadges() {
+  const unread = S.social.friends.reduce((n, f) => n + (f.unread || 0), 0) + S.social.friends.filter(f => f.state === "incoming").length;
+  const set = (id, n) => { const el = $(id); if (el) { el.textContent = n > 9 ? "9+" : n; el.classList.toggle("on", n > 0); } };
+  set("b-trade", S.social.trades_waiting || 0); set("b-friends", unread);
+}
+
+function authView(err = "") {
+  return `<div class="win" style="margin-top:24px"><div class="bar"><b>LOGIN.EXE</b><span class="dot"></span><span class="dot"></span></div><div class="pad">
+    <h1>CARD DROP</h1><div class="sub">collect pixel anime cards with your friends</div>
+    <label>USERNAME</label><input id="u" maxlength="16" autocomplete="username" placeholder="3-16 letters, numbers or _">
+    <label>PASSWORD</label><input id="p" type="password" autocomplete="current-password" placeholder="at least 6 characters">
+    <div class="err" id="err">${esc(err)}</div>
+    <div style="display:flex;gap:8px"><button class="wide" id="in">LOG IN</button><button class="wide alt" id="up">SIGN UP</button></div>
+    ${S.api.demo ? `<p class="small" style="margin-top:10px">DEMO MODE: accounts and cards are saved on this PC only.</p>` : ""}
+  </div></div>`;
+}
+function bindAuth() {
+  const go = async signup => {
+    const u = $("u").value.trim(), p = $("p").value;
+    if (!/^[A-Za-z0-9_]{3,16}$/.test(u)) return ($("err").textContent = "username: 3-16 letters, numbers or _");
+    if (p.length < 6) return ($("err").textContent = "password needs at least 6 characters");
+    $("in").disabled = $("up").disabled = true; $("err").textContent = "please wait...";
+    try { S.user = signup ? await S.api.signUp(u, p) : await S.api.signIn(u, p); S.tab = "drop"; await afterLogin(); }
+    catch (e) { $("err").textContent = e.message; $("in").disabled = $("up").disabled = false; }
+  };
+  $("in").onclick = () => go(false); $("up").onclick = () => go(true);
+  $("p").onkeydown = e => { if (e.key === "Enter") go(false); };
+}
+
+function setupView() {
+  return `<div class="win" style="margin-top:24px"><div class="bar"><b>SETUP.EXE</b><span class="dot"></span></div><div class="pad">
+    <h1>CARD DROP</h1><div class="sub">the game server isn't set up yet</div>
+    <p class="small">to play with friends, the browser owner needs to connect a free Supabase server (see the setup guide). until then you can try it in demo mode - against PixelBot!</p><br>
+    <button class="wide" id="demo">TRY DEMO MODE</button></div></div>`;
+}
+
+async function render(full) {
+  const app = $("app");
+  if (!S.api) { app.innerHTML = setupView(); $("demo").onclick = () => { S.api = new DemoAPI(); start(); }; return; }
+  if (!S.user) { app.innerHTML = authView(); bindAuth(); return; }
+  if (S.tab === "drop") { app.innerHTML = shell(dropView()); bindShell(); bindDrop(); }
+  if (S.tab === "cards") { if (full) S.mine = await S.api.myCards(S.user.id).catch(() => S.mine); app.innerHTML = shell(cardsView()); bindShell(); bindCards(); }
+  if (S.tab === "top") { if (full) [S.board, S.bigPulls] = await Promise.all([S.api.board().catch(() => S.board), S.api.bigPulls().catch(() => S.bigPulls)]); app.innerHTML = shell(topView()); bindShell(); }
+  if (S.tab === "trade") {
+    if (full) {
+      [S.mine, S.trades, S.players, S.social] = await Promise.all([S.api.myCards(S.user.id).catch(() => S.mine), S.api.trades().catch(() => S.trades),
+        S.api.players().catch(() => S.players), S.api.social().catch(() => S.social)]);
+      if (S.tr.target) S.tr.theirs = await S.api.myCards(S.tr.target.id).catch(() => []);
+    }
+    app.innerHTML = shell(tradeView()); bindShell(); bindTrade();
+  }
+  if (S.tab === "friends") {
+    if (full) { S.social = await S.api.social().catch(() => S.social); if (S.chatWith) S.chat = await S.api.chat(S.chatWith.id).catch(() => S.chat); }
+    app.innerHTML = shell(S.chatWith ? chatView() : friendsView()); bindShell(); S.chatWith ? bindChat() : bindFriends();
+  }
+  paintCards();
+}
+async function afterLogin() {
+  S.social = await S.api.social().catch(() => S.social);
+  try { S.offset = (await S.api.serverNow()) - Date.now() / 1000; } catch (e) { S.offset = 0; }
+  await refreshDrop(); render(true);
+  checkAnnouncements();
+}
+async function start() {
+  try { S.user = await S.api.session(); } catch (e) { S.user = null; }
+  if (S.user) await afterLogin(); else render(true);
+}
+
+// ------------------------------------------------------------------ global announcements
+const annLabel = a => `${"★".repeat(a.stars)}${a.finish === "full" ? " FULL ART" : a.finish === "holo" ? " HOLO" : ""}`;
+async function checkAnnouncements() {
+  if (!S.api) return;
+  const key = "dp_ann_seen_" + (S.api.demo ? "demo" : "live");
+  if (S.annSeen === null) { try { S.annSeen = +(localStorage.getItem(key) || -1); } catch (e) { S.annSeen = -1; } }
+  if (S.annSeen === -1) {   // first time here: don't replay old news
+    const recent = await S.api.bigPulls().catch(() => []);
+    S.annSeen = recent.length ? Math.max(...recent.map(a => a.id)) : 0;
+  }
+  const fresh = await S.api.announcements(S.annSeen).catch(() => []);
+  if (!fresh.length) { try { localStorage.setItem(key, S.annSeen); } catch (e) {} return; }
+  S.annSeen = Math.max(...fresh.map(a => a.id));
+  try { localStorage.setItem(key, S.annSeen); } catch (e) {}
+  S.annQueue.push(...fresh); showNextAnnouncement();
+}
+function showNextAnnouncement() {
+  if (S.annShowing || !S.annQueue.length) return;
+  const a = S.annQueue.shift(); S.annShowing = true;
+  const el = document.createElement("div");
+  el.className = "ann " + (a.finish === "full" ? "full" : "five");
+  el.innerHTML = `<div class="anncard">${cardHTML(a.character_id, a.stars, a.finish, a.print_no)}</div>
+    <div class="anntext">📢 <b>${esc(a.username)}</b> pulled<br><b class="big">${annLabel(a)}</b><br>${esc(charInfo(a.character_id).name)} #${a.print_no}</div>`;
+  el.onclick = () => el.remove();
+  document.body.appendChild(el); paintCards(el);
+  setTimeout(() => { el.classList.add("out"); setTimeout(() => { el.remove(); S.annShowing = false; showNextAnnouncement(); }, 400); }, 6000);
+}
+
+// badges every 10 seconds, the open chat every 3 seconds
+let socialTicks = 0;
+setInterval(async () => {
+  if (!S.user || !S.api) return;
+  socialTicks++;
+  if (S.tab === "friends" && S.chatWith && socialTicks % 3 === 0) {
+    const before = S.chat.length, typing = $("msg") ? $("msg").value : "";
+    S.chat = await S.api.chat(S.chatWith.id).catch(() => S.chat);
+    if (S.chat.length !== before && S.tab === "friends" && S.chatWith) { render(); if ($("msg")) $("msg").value = typing; }
+  }
+  if (socialTicks % 10 === 0) { S.social = await S.api.social().catch(() => S.social); paintBadges(); }
+  if (socialTicks % 8 === 4) checkAnnouncements();
+}, 1000);
+
+// tick: update the timer every second, re-check claims every 3 seconds during a drop
+let ticks = 0;
+setInterval(() => {
+  if (!S.user || S.tab !== "drop") return;
+  const t = now(), d = Math.floor(t / DROP_EVERY), phase = t - d * DROP_EVERY, active = phase < DROP_WINDOW;
+  if (d !== S.lastDrop || (active && ++ticks % 3 === 0)) { refreshDrop(); return; }
+  if (Math.abs(phase - DROP_WINDOW) < 1.1) { render(); return; }
+  const tm = $("tm"); if (tm) tm.textContent = mmss(active ? DROP_WINDOW - phase : DROP_EVERY - phase);
+}, 1000);
+
+window.addEventListener("load", () => {
+  if (CONFIGURED && window.supabase) S.api = new SupaAPI();
+  else if (CONFIGURED) { $("app").innerHTML = `<div class="win"><div class="pad"><h1>OOPS x_x</h1><p class="small">couldn't load the game. are you online?</p></div></div>`; return; }
+  else if (localStorage.getItem("dp_demo_session") !== null) S.api = new DemoAPI();
+  start();
+});
+</script></body></html>
