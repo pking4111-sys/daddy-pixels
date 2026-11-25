@@ -1,0 +1,44 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><style>@font-face{font-family:Silkscreen;src:url(fonts/Silkscreen-Regular.ttf)}@font-face{font-family:Silkscreen;font-weight:700;src:url(fonts/Silkscreen-Bold.ttf)}@font-face{font-family:VT323;src:url(fonts/VT323-Regular.ttf)}</style><title>TERMINAL</title>
+
+<style>
+:root{--g:#3cff7a;--d:#1f9a48;--bg:#07140b}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:radial-gradient(ellipse at center,#0f2a17 0%,#07140b 70%,#020703 100%);color:var(--g);
+  font-family:VT323,Consolas,monospace;font-size:24px;text-shadow:0 0 6px #3cff7a99;overflow:hidden;
+  animation:flick 4s infinite}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.35) 0 2px,transparent 2px 4px)}
+body::before{content:"";position:fixed;left:0;right:0;height:120px;pointer-events:none;z-index:2;
+  background:linear-gradient(180deg,transparent,#3cff7a14,transparent);animation:roll 7s linear infinite}
+@keyframes roll{from{top:-120px}to{top:100%}}
+@keyframes flick{0%,100%{opacity:1}92%{opacity:1}93%{opacity:.85}94%{opacity:1}}
+.screen{max-width:900px;margin:0 auto;padding:6vh 30px}
+.head{text-align:center;line-height:1.15;margin-bottom:28px;font-size:28px;letter-spacing:1px}
+#boot div{white-space:pre}
+.prompt{display:flex;align-items:center;margin:26px 0 8px;font-size:28px}
+input{flex:1;background:transparent;border:none;outline:none;color:var(--g);font:inherit;text-shadow:inherit;caret-color:var(--g);margin-left:12px}
+.links{margin-top:22px;display:flex;flex-direction:column;gap:4px}
+.links a{color:var(--g);text-decoration:none;width:fit-content;padding:0 6px}
+.links a:hover,.links a:focus{background:var(--g);color:var(--bg);text-shadow:none;outline:none}
+.foot{position:fixed;bottom:18px;left:0;right:0;text-align:center;color:var(--d);font-size:20px}
+.cur{animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}
+</style><style>@media(max-width:600px){body{font-size:20px;overflow:auto}.head{font-size:20px}.screen{padding:4vh 14px}#boot div{white-space:pre-wrap}.prompt{font-size:22px}.foot{font-size:15px}}</style></head><body><div class="screen">
+<div class="head">DADDY-TEC INDUSTRIES UNIFIED BROWSING SYSTEM<br>COPYRIGHT 2077 DADDY-TEC INDUSTRIES<br>-Terminal 1-</div>
+<div id="boot"></div>
+<form class="prompt" onsubmit="go();return false"><span>&gt; SEARCH:</span><input id="q" spellcheck="false" placeholder="_"></form>
+<div class="links"><a href="https://duckduckgo.com">[ DuckDuckGo ]</a><a href="https://m.youtube.com">[ YouTube ]</a><a href="https://en.m.wikipedia.org">[ Wikipedia ]</a><a href="https://github.com">[ GitHub ]</a><a href="daddypixels://carddrop">[ CARD DROP ]</a></div>
+</div>
+<div class="foot">MEM 64K OK &nbsp;|&nbsp; <span id="clock"></span> &nbsp;|&nbsp; ALL SYSTEMS NOMINAL <span class="cur">█</span></div>
+<script>
+const lines=["> INITIALIZING DADDY PIXELS KERNEL ........ OK","> LOADING ANDROID WEBVIEW ................ OK",
+ "> ESTABLISHING UPLINK TO THE WASTELAND WEB .. OK","> WELCOME BACK, OVERSEER."];
+const boot=document.getElementById('boot');let i=0,j=0,d;
+(function type(){if(i>=lines.length)return;if(j===0){d=document.createElement('div');boot.appendChild(d)}
+ d.textContent=lines[i].slice(0,++j);if(j>=lines[i].length){i++;j=0;setTimeout(type,180)}else setTimeout(type,12)})();
+function go(){let v=document.getElementById('q').value.trim();if(!v)return;
+  if(/^https?:\/\//.test(v))location=v;else if(/^[^\s]+\.[a-z]{2,}(\/.*)?$/i.test(v))location='https://'+v;
+  else location='https://duckduckgo.com/?q='+encodeURIComponent(v);}
+function tick(){document.getElementById('clock').textContent='TIME '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+tick();setInterval(tick,1000);
+</script></body></html>

@@ -1,0 +1,45 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.daddypixels.browser'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.daddypixels.browser"
+        minSdk 24
+        targetSdk 34
+        versionCode((project.findProperty("dpVersionCode") ?: "1") as int)
+        versionName(project.findProperty("dpVersion") ?: "1.0.0")
+    }
+
+    // Signing key comes from GitHub secrets (see README). Without it the build is signed with a debug key.
+    def ks = System.getenv("DP_KEYSTORE_FILE")
+    signingConfigs {
+        release {
+            if (ks != null && file(ks).exists()) {
+                storeFile file(ks)
+                storePassword System.getenv("DP_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("DP_KEY_ALIAS") ?: "daddypixels"
+                keyPassword System.getenv("DP_KEYSTORE_PASSWORD")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+            signingConfig (ks != null && file(ks).exists()) ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    buildFeatures { buildConfig true }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
