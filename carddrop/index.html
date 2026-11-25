@@ -170,7 +170,7 @@ body.fallout .bub{background:#0d2214;border-width:1px}body.fallout .bub.me{backg
 <body class="pixels"><div id="app"></div>
 <script>
 "use strict";
-const CFG = {url: "", key: ""};
+const CFG = {url: "https://rlduowlzzupulaqkjxun.supabase.co", key: "sb_publishable_dqn8aktefWrMmzRo-y5byA_Pj5AhTzS"};
 const CONFIGURED = CFG.url.startsWith("https://") && CFG.key.length > 20;
 const DROP_EVERY = 900, DROP_WINDOW = 300, POOL = 300, SLOTS = 3;
 const WEB = "1" === "1";   // the phone/website version has its own skin switch
@@ -910,14 +910,13 @@ function bindAuth() {
 
 function setupView() {
   return `<div class="win" style="margin-top:24px"><div class="bar"><b>SETUP.EXE</b><span class="dot"></span></div><div class="pad">
-    <h1>CARD DROP</h1><div class="sub">the game server isn't set up yet</div>
-    <p class="small">to play with friends, the browser owner needs to connect a free Supabase server (see the setup guide). until then you can try it in demo mode - against PixelBot!</p><br>
-    <button class="wide" id="demo">TRY DEMO MODE</button></div></div>`;
+    <h1>CARD DROP</h1><div class="sub">the game server is offline</div>
+    <p class="small">Card Drop can't reach its server right now. try again in a bit!</p></div></div>`;
 }
 
 async function render(full) {
   const app = $("app");
-  if (!S.api) { app.innerHTML = setupView(); $("demo").onclick = () => { S.api = new DemoAPI(); start(); }; return; }
+  if (!S.api) { app.innerHTML = setupView(); return; }
   if (!S.user) { app.innerHTML = authView(); bindAuth(); return; }
   if (S.tab === "drop") { app.innerHTML = shell(dropView()); bindShell(); bindDrop(); }
   if (S.tab === "cards") { if (full) S.mine = await S.api.myCards(S.user.id).catch(() => S.mine); app.innerHTML = shell(cardsView()); bindShell(); bindCards(); }
@@ -1002,7 +1001,6 @@ setInterval(() => {
 window.addEventListener("load", () => {
   if (CONFIGURED && window.supabase) S.api = new SupaAPI();
   else if (CONFIGURED) { $("app").innerHTML = `<div class="win"><div class="pad"><h1>OOPS x_x</h1><p class="small">couldn't load the game. are you online?</p></div></div>`; return; }
-  else if (localStorage.getItem("dp_demo_session") !== null) S.api = new DemoAPI();
   start();
 });
 </script></body></html>
