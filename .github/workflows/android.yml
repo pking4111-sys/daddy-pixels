@@ -1,0 +1,78 @@
+# Builds the Daddy Pixels Android app (APK) on GitHub's computers.
+# - Runs by itself whenever you publish a release, and attaches DaddyPixels-<version>.apk to it.
+# - You can also run it by hand: Actions tab -> "Build Android APK" -> Run workflow.
+name: Build Android APK
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Work out version
+        id: ver
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          if [ -z "$TAG" ]; then TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo v1.0.0); fi
+          VER="${TAG#v}"; VER="${VER#V}"
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+
+      - name: Signing key (from secrets, optional)
+        env:
+          KEYSTORE_B64: ${{ secrets.DP_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/dp.p12"
+            echo "DP_KEYSTORE_FILE=$RUNNER_TEMP/dp.p12" >> "$GITHUB_ENV"
+          else
+            echo "::warning::No DP_KEYSTORE_B64 secret - building with a throwaway debug key."
+          fi
+
+      - name: Get the pixel fonts (Google Fonts, OFL licence)
+        run: |
+          mkdir -p app/src/main/assets/fonts
+          base=https://raw.githubusercontent.com/google/fonts/main/ofl
+          curl -fsSL -o app/src/main/assets/fonts/Silkscreen-Regular.ttf $base/silkscreen/Silkscreen-Regular.ttf
+          curl -fsSL -o app/src/main/assets/fonts/Silkscreen-Bold.ttf $base/silkscreen/Silkscreen-Bold.ttf
+          curl -fsSL -o app/src/main/assets/fonts/VT323-Regular.ttf $base/vt323/VT323-Regular.ttf
+
+      - name: Build
+        env:
+          DP_KEYSTORE_PASSWORD: ${{ secrets.DP_KEYSTORE_PASSWORD }}
+        run: gradle --no-daemon assembleRelease -PdpVersion=${{ steps.ver.outputs.version }} -PdpVersionCode=${{ github.run_number }}
+
+      - name: Name the APK
+        run: cp app/build/outputs/apk/release/app-release.apk "DaddyPixels-${{ steps.ver.outputs.version }}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DaddyPixels-apk
+          path: android/DaddyPixels-*.apk
+
+      - name: Attach to the release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" DaddyPixels-*.apk --clobber
