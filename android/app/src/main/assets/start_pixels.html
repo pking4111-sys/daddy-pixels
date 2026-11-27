@@ -84,7 +84,7 @@ button:active{transform:translate(3px,3px);box-shadow:none}
 <script>
 function go(){let v=document.getElementById('q').value.trim();if(!v)return;
   if(/^https?:\/\//.test(v))location=v;else if(/^[^\s]+\.[a-z]{2,}(\/.*)?$/i.test(v))location='https://'+v;
-  else location='https://duckduckgo.com/?q='+encodeURIComponent(v);}
+  else location=(new URLSearchParams(location.search).get('se')||'https://www.google.com/search?q=')+encodeURIComponent(v);}
 function tick(){document.getElementById('clock').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
 tick();setInterval(tick,1000);
 </script></body></html>
