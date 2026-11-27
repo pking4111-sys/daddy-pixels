@@ -77,6 +77,36 @@ body.fallout .tabs button.on{background:var(--txt);color:#07140b}
 .card.secret .plate{color:#a05cff}
 .card.secret .stars{color:#ff4f9a;letter-spacing:0;text-shadow:1px 1px 0 #ffd23f}
 .card.secret .tag{background:linear-gradient(90deg,#ff4f9a,#a05cff);animation:rainbow 1.6s steps(8) infinite}
+/* ⚔ ADVENTURE (AFK RPG) */
+.advhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.wallet{text-align:right;font-family:VT323,monospace;font-size:19px}
+.arena{position:relative;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:10px;border:3px solid var(--b);background:linear-gradient(var(--sky),var(--mint));min-height:120px;overflow:hidden}
+.side.us{display:flex;flex-wrap:wrap;gap:4px;flex:1}
+.fighter{animation:bob 1s steps(2) infinite}
+.fighter canvas{width:40px;height:52px;image-rendering:pixelated;border:2px solid var(--b);background:var(--panel);display:block}
+.fighter.hit{animation:lunge .3s steps(3)}
+@keyframes bob{50%{transform:translateY(-3px)}}
+@keyframes lunge{50%{transform:translateX(14px)}}
+.vs{font-weight:700}
+.side.them{text-align:center;width:120px}
+#monster{width:72px;height:72px;image-rendering:pixelated;animation:bob 1.2s steps(2) infinite}
+#monster.dead{opacity:0;transition:opacity .5s}
+.hp{height:8px;border:2px solid var(--b);background:var(--panel)}.hp i{display:block;height:100%;background:#e23b3b;transition:width .3s}
+.hp.big{height:14px;margin:6px 0}
+#fx{position:absolute;inset:0;pointer-events:none}
+.dmg{position:absolute;top:30%;font-family:VT323,monospace;font-size:22px;color:#e23b3b;font-weight:700;animation:rise .9s forwards}
+@keyframes rise{to{transform:translateY(-30px);opacity:0}}
+.loot{border:3px dashed var(--b);padding:8px;margin:10px 0;text-align:center;font-family:VT323,monospace;font-size:19px;background:var(--yel)}
+.loot button{margin-top:6px}
+button.mini{padding:3px 7px;font-size:10px;box-shadow:2px 2px 0 var(--b)}
+.sec button.mini{float:right;margin-top:-4px}
+.teamlist{display:flex;flex-direction:column;gap:8px}
+.tm{display:flex;gap:10px;align-items:center;border:2px solid var(--b);padding:6px;background:var(--soft)}
+.tm .pick{cursor:default}
+.tmi{flex:1;font-size:12px}
+.pk{display:flex;flex-direction:column;align-items:center;width:104px;text-align:center}.pk .lbl2{font-size:14px}
+.code{font-size:28px;letter-spacing:6px;text-align:center;font-weight:700;margin:4px 0 8px}
+canvas.raidboss{display:block;margin:4px auto;width:128px;height:128px;image-rendering:pixelated}
 body.fallout .card{--f1:#0d2214;--f2:#07140b;border-width:1px;box-shadow:inset 0 0 0 1px #1f9a48}
 body.fallout .card.s4,body.fallout .card.s5{--f1:#163d22;--f2:#0a1f10}
 body.fallout .card .plate,body.fallout .card .code{background:#07140bd9;color:#3cff7a;border-width:1px;font-size:13px}
@@ -835,8 +865,8 @@ function shell(inner) {
   const demo = S.api && S.api.demo;
   return `<div class="top"><span class="me">${FALLOUT ? "&gt; USER: " : "♥ "}${esc(S.user.username)}${demo ? " (demo)" : ""}</span>
       ${WEB ? `<button class="alt" id="skinbtn" title="switch skin">${FALLOUT ? "♥" : "☢"}</button>` : ""}${demo ? '<button class="alt" id="dropnow">DROP NOW</button>' : ""}<button class="alt" id="sndbtn" title="cat sounds on/off">${SOUND ? "🔊" : "🔇"}</button><button class="alt" id="logout">LOG OUT</button></div>
-    <div class="tabs">${["drop", "cards", "trade", "friends", "top"].map(t => `<button data-tab="${t}" class="${S.tab === t ? "on" : ""}">${{drop: "DROP", cards: "CARDS", trade: "TRADE", friends: "FRIENDS", top: "TOP"}[t]}<span class="badge" id="b-${t}"></span></button>`).join("")}</div>
-    <div class="win"><div class="bar"><b>${{drop: "CARD_DROP.EXE", cards: "COLLECTION.EXE", trade: "TRADE.EXE", friends: S.chatWith ? "CHAT.EXE" : "FRIENDS.EXE", top: "LEADERBOARD.EXE"}[S.tab]}</b><span class="dot"></span><span class="dot"></span></div><div class="pad" id="view">${inner}</div></div>`;
+    <div class="tabs">${["drop", "cards", "adv", "trade", "friends", "top"].map(t => `<button data-tab="${t}" class="${S.tab === t ? "on" : ""}">${{drop: "DROP", cards: "CARDS", adv: "⚔ AFK", trade: "TRADE", friends: "FRIENDS", top: "TOP"}[t]}<span class="badge" id="b-${t}"></span></button>`).join("")}</div>
+    <div class="win"><div class="bar"><b>${{drop: "CARD_DROP.EXE", cards: "COLLECTION.EXE", adv: "ADVENTURE.EXE", trade: "TRADE.EXE", friends: S.chatWith ? "CHAT.EXE" : "FRIENDS.EXE", top: "LEADERBOARD.EXE"}[S.tab]}</b><span class="dot"></span><span class="dot"></span></div><div class="pad" id="view">${inner}</div></div>`;
 }
 function bindShell() {
   document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { if (b.dataset.tab !== "friends") S.chatWith = null; S.tab = b.dataset.tab; render(true); });
@@ -1092,12 +1122,215 @@ function setupView() {
     <p class="small">Card Drop can't reach its server right now. try again in a bit!</p></div></div>`;
 }
 
+// ------------------------------------------------------------------ ⚔ ADVENTURE (AFK RPG)
+// The numbers here only SHOW things - the server (adventure_setup.sql) does the real maths.
+const ADV_BASE = [10, 20, 40, 70, 120, 300];
+const cardPower = (stars, finish, lv) => Math.round(ADV_BASE[stars - 1] * (finish === "full" ? 1.3 : finish === "holo" ? 1.15 : 1) * (1 + (lv - 1) * 0.1));
+const levelCap = stars => Math.min(100, 40 + 10 * stars);
+const stagePower = n => Math.round(40 * Math.pow(1.12, n - 1));
+const xpCost = lv => Math.round(10 * Math.pow(lv, 1.3));
+const goldCost = lv => Math.round(5 * Math.pow(lv, 1.2));
+const RAID_LV = 60;
+const RAID_BOSSES = ["KING SLIME", "VOID BAT", "BONE TITAN", "CRYSTAL GOLEM", "PIXEL DRAGON"];
+const MONSTERS = ["SLIME", "BAT", "SKULL", "GOLEM", "DRAKE"];
+const fmtN = n => Number(n || 0).toLocaleString("en-GB");
+const fmtT = s => { s = Math.max(0, Math.floor(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60);
+  return h ? `${h}h ${m}m` : m ? `${m}m ${s % 60}s` : `${s}s`; };
+
+Object.assign(SupaAPI.prototype, {
+  async levels(ids) {
+    const out = {};
+    for (let i = 0; i < ids.length; i += 150) {
+      const {data} = await this.sb.from("card_levels").select("claim_id,level").in("claim_id", ids.slice(i, i + 150));
+      (data || []).forEach(r => out[r.claim_id] = r.level);
+    }
+    return out;
+  },
+  async myRaids(uid) {
+    const {data} = await this.sb.from("raids").select("*").or(`host.eq.${uid},guest.eq.${uid}`).in("status", ["open", "running"]).order("id", {ascending: false}).limit(5);
+    return data || [];
+  },
+  async openRaids(uid) {
+    const {data} = await this.sb.from("raids").select("*").eq("status", "open").neq("host", uid).order("id", {ascending: false}).limit(20);
+    return data || [];
+  }
+});
+
+async function loadAdventure() {
+  const [st, mine] = await Promise.all([S.api.rpc("afk_state"), S.api.myCards(S.user.id).catch(() => S.mine)]);
+  S.adv = st; S.mine = mine;
+  S.lv = await S.api.levels(mine.map(c => c.id)).catch(() => S.lv || {});
+  if (S.advMode === "raids") [S.myRaids, S.openRaids] = await Promise.all([S.api.myRaids(S.user.id), S.api.openRaids(S.user.id)]);
+  S.advLoaded = Date.now();
+}
+const lvOf = c => (S.lv || {})[c.id] || 1;
+const myCard = id => S.mine.find(c => c.id === id);
+const teamCards = () => (S.adv ? S.adv.team : []).map(myCard).filter(Boolean);
+
+function advView() {
+  if (!S.adv) return `<p class="small">loading your adventure...</p>`;
+  const sw = `<div class="seg"><button class="${S.advMode !== "raids" ? "on" : ""}" data-amode="team">⚔ ADVENTURE</button><button class="${S.advMode === "raids" ? "on" : ""}" data-amode="raids">🐉 RAIDS</button></div>`;
+  return sw + (S.advMode === "raids" ? raidsView() : (S.picking ? teamPickView() : teamView()));
+}
+
+function teamView() {
+  const a = S.adv, team = teamCards(), tp = a.team_power, ep = a.stage_power, win = tp >= ep && tp > 0;
+  let h = `<div class="advhead"><div><b>STAGE ${a.stage}</b><br><span class="lbl2">your team ⚔ ${fmtN(tp)} vs enemy ${fmtN(ep)}</span></div>
+    <div class="wallet">🪙 ${fmtN(a.gold)}<br>✨ ${fmtN(a.xp)} XP</div></div>
+    <div class="arena" id="arena">
+      <div class="side us">${team.length ? team.map(c => `<div class="fighter"><canvas data-cid="${c.character_id}" data-s="${c.stars}" data-f="${c.finish}"></canvas></div>`).join("") : `<span class="lbl2">no team yet!</span>`}</div>
+      <div class="vs">VS</div>
+      <div class="side them"><canvas id="monster" width="48" height="48"></canvas><div class="hp"><i id="mhp"></i></div><div class="lbl2" id="mname"></div></div>
+      <div id="fx"></div>
+    </div>
+    <div class="small">${!team.length ? "pick up to 5 cards for your team - they fight on their own, even when you're away!"
+      : win ? "your team is winning! they clear a new stage every 2 minutes while you're away."
+      : "this stage is too strong - level up your cards to beat it! (you still earn loot)"}</div>`;
+  const gotLoot = a.pending_gold > 0 || a.pending_xp > 0;
+  h += `<div class="loot">⏳ away ${fmtT(a.away_secs)}${a.away_secs >= 43200 ? " (FULL - 12h max)" : ""}<br>
+    <b>+${fmtN(a.pending_gold)} 🪙 &nbsp; +${fmtN(a.pending_xp)} ✨</b>${a.pending_stage > a.stage ? `<br>stage ${a.stage} → <b>${a.pending_stage}</b>` : ""}
+    <button class="wide" id="collect" ${gotLoot || a.pending_stage > a.stage ? "" : "disabled"}>COLLECT LOOT</button></div>`;
+  h += `<div class="sec">YOUR TEAM (${team.length}/5) <button class="alt mini" id="editteam">EDIT TEAM</button></div>`;
+  h += team.length ? `<div class="teamlist">${team.map(c => {
+    const lv = lvOf(c), cap = levelCap(c.stars), max = lv >= cap;
+    return `<div class="tm"><div class="pick">${cardHTML(c.character_id, c.stars, c.finish, c.print_no)}</div>
+      <div class="tmi"><b>Lv ${lv}</b>${max ? " MAX" : ` / ${cap}`}<br>⚔ ${fmtN(cardPower(c.stars, c.finish, lv))}
+      ${max ? "" : `<br><span class="lbl2">next: ${fmtN(xpCost(lv))}✨ ${fmtN(goldCost(lv))}🪙</span>
+      <div class="row"><button class="mini" data-up="${c.id}" data-n="1" ${a.xp >= xpCost(lv) && a.gold >= goldCost(lv) ? "" : "disabled"}>+1</button>
+      <button class="mini alt" data-up="${c.id}" data-n="10" ${a.xp >= xpCost(lv) && a.gold >= goldCost(lv) ? "" : "disabled"}>+10</button></div>`}</div></div>`;
+  }).join("")}</div>` : `<p class="small">tap EDIT TEAM to pick your fighters.</p>`;
+  h += `<div class="small">level caps: ★50 · ★★60 · ★★★70 · ★★★★80 · ★★★★★90 · ✦ secret cat 100<br>
+    raids unlock when 3 of your team cards are level ${RAID_LV}+</div>`;
+  return h;
+}
+
+function teamPickView() {
+  const list = [...S.mine].sort((x, y) => cardPower(y.stars, y.finish, lvOf(y)) - cardPower(x.stars, x.finish, lvOf(x)));
+  return `<div class="small">pick up to 5 cards (${S.picking.length}/5) - strongest first</div>
+    <div class="row"><button class="wide" id="saveteam">SAVE TEAM</button><button class="wide alt" id="cancelteam">CANCEL</button></div>
+    ${list.length ? `<div class="mgrid">${list.map(c => `<div class="pk"><div class="pick ${S.picking.includes(c.id) ? "sel" : ""}" data-pid="${c.id}">${cardHTML(c.character_id, c.stars, c.finish, c.print_no)}</div>
+      <div class="lbl2">Lv ${lvOf(c)} · ⚔${fmtN(cardPower(c.stars, c.finish, lvOf(c)))}</div></div>`).join("")}</div>`
+      : `<p class="small">you need cards first - grab some at the next drop!</p>`}`;
+}
+
+function raidsView() {
+  const a = S.adv, ready = teamCards().filter(c => lvOf(c) >= RAID_LV).length;
+  let h = `<div class="small">🐉 RAIDS: team up with another player to fight a giant boss for 4 hours, AFK.<br>
+    <b>both players</b> need 3 team cards at <b>level ${RAID_LV}+</b>. you have <b>${ready}/3</b> · raids won: ${a.raids_won}</div>`;
+  for (const r of S.myRaids || []) {
+    const host = r.host === S.user.id, boss = RAID_BOSSES[r.boss] || "BOSS";
+    if (r.status === "open") {
+      h += `<div class="offer"><div class="oh"><b>YOUR RAID vs ${boss}</b><span class="st">waiting for a partner...</span></div>
+        <div class="small">send your friend this code:</div><div class="code">${esc(r.code)}</div>
+        <button class="wide alt" data-rcancel="${r.id}">CANCEL RAID</button></div>`;
+    } else {
+      const total = (new Date(r.ends_at) - new Date(r.started_at)) / 1000, left = new Date(r.ends_at) / 1000 - (Date.now() / 1000 + (S.offset || 0));
+      const pct = Math.max(0, Math.min(100, 100 - left / total * 100)), mine = host ? r.host_claimed : r.guest_claimed;
+      h += `<div class="offer"><div class="oh"><b>⚔ ${esc(r.host_name)} + ${esc(r.guest_name)} vs ${boss}</b></div>
+        <canvas class="raidboss" data-boss="${r.boss}" width="64" height="64"></canvas>
+        <div class="hp big"><i style="width:${100 - pct}%"></i></div>
+        <div class="small">team power ${fmtN(r.host_power + r.guest_power)} · ${left > 0 ? `${fmtT(left)} left` : "BOSS DEFEATED!"}</div>
+        ${left <= 0 && !mine ? `<button class="wide" data-rclaim="${r.id}">CLAIM RAID LOOT (+${fmtN((r.host_power + r.guest_power) * 10)}🪙 +${fmtN((r.host_power + r.guest_power) * 6)}✨)</button>` : ""}
+        ${mine ? `<div class="small">you took your loot - waiting for your partner</div>` : ""}</div>`;
+    }
+  }
+  const busy = (S.myRaids || []).some(r => r.status === "open" || !(r.host === S.user.id ? r.host_claimed : r.guest_claimed));
+  if (!busy) {
+    h += `<button class="wide" id="rcreate" ${ready >= 3 ? "" : "disabled"}>START A RAID</button>
+      <div class="row"><input id="rcode" placeholder="friend's raid code" maxlength="6"><button id="rjoin" ${ready >= 3 ? "" : "disabled"}>JOIN</button></div>`;
+    const open = S.openRaids || [];
+    h += `<div class="sec">OPEN RAIDS</div>` + (open.length ? open.map(r => `<div class="offer"><div class="oh"><b>${esc(r.host_name)} vs ${RAID_BOSSES[r.boss] || "BOSS"}</b>
+      <span class="st">⚔ ${fmtN(r.host_power)}</span></div><button class="wide alt" data-rjoincode="${esc(r.code)}" ${ready >= 3 ? "" : "disabled"}>JOIN THIS RAID</button></div>`).join("")
+      : `<p class="small">no open raids right now - start one!</p>`);
+  }
+  return h;
+}
+
+async function advAct(fn, args, okMsg) {
+  try { const r = await S.api.rpc(fn, args); if (okMsg) toast(typeof okMsg === "function" ? okMsg(r) : okMsg); await loadAdventure(); render(); return r; }
+  catch (e) { toast(e.message); }
+}
+function bindAdv() {
+  document.querySelectorAll("[data-amode]").forEach(b => b.onclick = async () => { S.advMode = b.dataset.amode; S.picking = null; await loadAdventure().catch(() => {}); render(); });
+  if ($("collect")) $("collect").onclick = () => advAct("afk_collect", {}, r => { sparkleOk(); return `+${fmtN(r.got_gold)} 🪙  +${fmtN(r.got_xp)} ✨ collected!`; });
+  if ($("editteam")) $("editteam").onclick = () => { S.picking = [...S.adv.team].filter(id => myCard(id)); render(); };
+  if ($("cancelteam")) $("cancelteam").onclick = () => { S.picking = null; render(); };
+  if ($("saveteam")) $("saveteam").onclick = async () => { const ids = S.picking; S.picking = null; await advAct("afk_set_team", {p_ids: ids}, "team saved! ⚔"); };
+  document.querySelectorAll("[data-pid]").forEach(el => el.onclick = () => {
+    const id = +el.dataset.pid, i = S.picking.indexOf(id);
+    if (i >= 0) S.picking.splice(i, 1); else if (S.picking.length < 5) S.picking.push(id); else return toast("5 cards max - tap one to remove it");
+    render();
+  });
+  document.querySelectorAll("[data-up]").forEach(b => b.onclick = () => advAct("afk_level_up", {p_claim: +b.dataset.up, p_times: +b.dataset.n},
+    r => { sparkleOk(); return `LEVEL UP! now Lv ${r.level}`; }));
+  if ($("rcreate")) $("rcreate").onclick = () => advAct("raid_create", {}, "raid made! send the code to a friend");
+  if ($("rjoin")) $("rjoin").onclick = () => advAct("raid_join", {p_code: $("rcode").value}, "you joined the raid! ⚔");
+  document.querySelectorAll("[data-rjoincode]").forEach(b => b.onclick = () => advAct("raid_join", {p_code: b.dataset.rjoincode}, "you joined the raid! ⚔"));
+  document.querySelectorAll("[data-rcancel]").forEach(b => b.onclick = () => advAct("raid_cancel", {p_id: +b.dataset.rcancel}, "raid cancelled"));
+  document.querySelectorAll("[data-rclaim]").forEach(b => b.onclick = () => advAct("raid_claim", {p_id: +b.dataset.rclaim},
+    r => { fanfare(0); return `RAID LOOT! +${fmtN(r.gold)} 🪙 +${fmtN(r.xp)} ✨`; }));
+  document.querySelectorAll("canvas.raidboss").forEach(cv => drawMonster(cv, +cv.dataset.boss, 99, true));
+  startBattle();
+}
+function sparkleOk() { try { sparkle(); } catch (e) {} }
+
+// ---- pixel monsters (made from the stage number - no pictures needed)
+function drawMonster(cv, kind, seed, boss) {
+  const W = cv.width, c = cv.getContext("2d"), r = rng(seed * 31 + kind), px = (x, y, w, h, col) => { c.fillStyle = col; c.fillRect(x, y, w, h); };
+  c.clearRect(0, 0, W, W);
+  const hue = Math.floor(r() * 360), body = `hsl(${hue},70%,${FALLOUT ? 45 : 60}%)`, dark = `hsl(${hue},60%,30%)`, s = W / 48;
+  c.save(); c.scale(s, s);
+  if (kind === 0) { for (let y = 0; y < 22; y++) { const w = Math.min(40, 14 + y * 2.2); px(24 - w / 2, 22 + y, w, 1, body); } px(8, 42, 32, 2, dark); }
+  else if (kind === 1) { px(16, 18, 16, 14, body); for (let i = 0; i < 12; i++) { px(15 - i, 18 + i * 0.6, 1 + i * 0.2, 6 - i * 0.3, dark); px(32 + i, 18 + i * 0.6, 1 + i * 0.2, 6 - i * 0.3, dark); } px(18, 14, 3, 4, body); px(27, 14, 3, 4, body); }
+  else if (kind === 2) { px(12, 10, 24, 22, "#f2f2f2"); px(15, 32, 18, 6, "#f2f2f2"); px(15, 18, 7, 7, "#222"); px(26, 18, 7, 7, "#222"); px(22, 27, 4, 3, "#222"); for (const x of [16, 20, 24, 28]) px(x, 34, 2, 4, "#222"); }
+  else if (kind === 3) { px(10, 12, 28, 30, body); px(4, 18, 6, 18, dark); px(38, 18, 6, 18, dark); px(14, 42, 8, 4, dark); px(26, 42, 8, 4, dark); px(14, 16, 20, 6, dark); }
+  else { px(8, 20, 30, 16, body); px(30, 10, 12, 12, body); px(40, 14, 6, 4, dark); for (let i = 0; i < 8; i++) px(14 + i * 2, 14 - i * 0.5, 2, 6 + i * 0.6, dark); px(4, 30, 6, 4, body); px(12, 36, 5, 8, dark); px(28, 36, 5, 8, dark); }
+  if (kind !== 2) { px(kind === 4 ? 34 : 17, kind === 4 ? 13 : 26, 4, 4, "#fff"); px(kind === 4 ? 35 : 18, kind === 4 ? 14 : 27, 2, 2, "#e23b3b");
+    if (kind !== 4) { px(27, 26, 4, 4, "#fff"); px(28, 27, 2, 2, "#e23b3b"); } }
+  if (boss) { px(16, 2, 16, 4, "#ffd23f"); for (const x of [16, 22, 28]) px(x, 0, 4, 3, "#ffd23f"); }
+  c.restore();
+}
+
+// ---- the battle you can watch (just for show - the server decides who wins)
+let battleTimer = null;
+function startBattle() {
+  clearInterval(battleTimer);
+  const arena = $("arena"); if (!arena || !S.adv) return;
+  const a = S.adv, win = a.team_power >= a.stage_power && a.team_power > 0, fighters = [...arena.querySelectorAll(".fighter")];
+  let n = 0, hp = 100, dying = false;
+  const spawn = () => { hp = 100; dying = false; n++; const kind = (a.stage + n) % 5, boss = (a.stage % 10) === 0;
+    drawMonster($("monster"), kind, a.stage * 100 + n, boss); $("mname").textContent = (boss ? "BOSS " : "") + MONSTERS[kind] + " · stage " + a.stage; $("mhp").style.width = "100%"; };
+  spawn();
+  if (!fighters.length) return;
+  battleTimer = setInterval(() => {
+    if (!document.body.contains(arena)) return clearInterval(battleTimer);
+    if (dying) return;
+    const f = fighters[Math.floor(Math.random() * fighters.length)];
+    f.classList.remove("hit"); void f.offsetWidth; f.classList.add("hit");
+    const dmg = win ? 8 + Math.floor(Math.random() * 14) : 1 + Math.floor(Math.random() * 3);
+    hp -= dmg; $("mhp").style.width = Math.max(0, hp) + "%";
+    const t = document.createElement("span"); t.className = "dmg"; t.textContent = "-" + Math.round(dmg * a.team_power / 60);
+    t.style.left = (62 + Math.random() * 20) + "%"; $("fx").appendChild(t); setTimeout(() => t.remove(), 900);
+    if (!win && hp < 70) hp = 100;   // too strong: it heals back up
+    if (hp <= 0) { dying = true; $("monster").classList.add("dead"); setTimeout(() => { $("monster").classList.remove("dead"); spawn(); }, 600); }
+  }, 650);
+}
+
+setInterval(async () => {   // keep the adventure fresh while you watch it
+  if (S.tab !== "adv" || S.picking || !S.user || Date.now() - (S.advLoaded || 0) < 55000) return;
+  try { await loadAdventure(); if (S.tab === "adv" && !S.picking) render(); } catch (e) {}
+}, 15000);
+
 async function render(full) {
   const app = $("app");
   if (!S.api) { app.innerHTML = setupView(); return; }
   if (!S.user) { app.innerHTML = authView(); bindAuth(); return; }
   if (S.tab === "drop") { app.innerHTML = shell(dropView()); bindShell(); bindDrop(); }
   if (S.tab === "cards") { if (full) S.mine = await S.api.myCards(S.user.id).catch(() => S.mine); app.innerHTML = shell(cardsView()); bindShell(); bindCards(); }
+  if (S.tab === "adv") {
+    if (full || !S.adv) await loadAdventure().catch(e => toast(e.message));
+    app.innerHTML = shell(advView()); bindShell(); bindAdv();
+  }
   if (S.tab === "top") { if (full) [S.board, S.bigPulls] = await Promise.all([S.api.board().catch(() => S.board), S.api.bigPulls().catch(() => S.bigPulls)]); app.innerHTML = shell(topView()); bindShell(); }
   if (S.tab === "trade") {
     if (full) {
