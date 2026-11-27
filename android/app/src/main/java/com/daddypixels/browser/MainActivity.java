@@ -191,6 +191,9 @@ public class MainActivity extends Activity {
                     toast("Searching with " + ENGINES[i][0]);
                     if (current != null && isHome(current.getUrl())) current.loadUrl(homeUrl());
                 })
+                .setNegativeButton("CANCEL", null).show();
+    }
+
     int dp(float v) { return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, getResources().getDisplayMetrics()); }
 
     GradientDrawable box(int fill, int stroke) {
