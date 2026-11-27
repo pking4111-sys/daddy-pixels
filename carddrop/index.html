@@ -106,6 +106,12 @@ button.mini{padding:3px 7px;font-size:10px;box-shadow:2px 2px 0 var(--b)}
 .tmi{flex:1;font-size:12px}
 .pk{display:flex;flex-direction:column;align-items:center;width:104px;text-align:center}
 .tm.ench .pick{filter:drop-shadow(0 0 5px #a05cff)}
+.raidban{border:3px solid var(--b);background:var(--yel);padding:6px 8px;margin:6px 10px;font-family:VT323,monospace;font-size:18px;text-align:center;animation:spin 1s steps(2) infinite}
+.raidban.new{background:var(--mint)}
+.seasonbox{background:var(--pink)}
+.boostbox{border:3px solid var(--b);background:var(--pink);padding:8px;margin:10px 0;font-size:12px}
+.brow{display:flex;justify-content:space-between;font-family:VT323,monospace;font-size:18px;border-bottom:1px dashed var(--b)}
+.boostbox .lbl2{display:block;margin-top:4px;font-size:15px}
 .tm button.mini{white-space:nowrap}.pk .lbl2{font-size:14px}
 .code{font-size:28px;letter-spacing:6px;text-align:center;font-weight:700;margin:4px 0 8px}
 canvas.raidboss{display:block;margin:4px auto;width:128px;height:128px;image-rendering:pixelated}
@@ -867,7 +873,7 @@ function shell(inner) {
   const demo = S.api && S.api.demo;
   return `<div class="top"><span class="me">${FALLOUT ? "&gt; USER: " : "♥ "}${esc(S.user.username)}${demo ? " (demo)" : ""}</span>
       ${WEB ? `<button class="alt" id="skinbtn" title="switch skin">${FALLOUT ? "♥" : "☢"}</button>` : ""}${demo ? '<button class="alt" id="dropnow">DROP NOW</button>' : ""}<button class="alt" id="sndbtn" title="cat sounds on/off">${SOUND ? "🔊" : "🔇"}</button><button class="alt" id="logout">LOG OUT</button></div>
-    <div class="tabs">${["drop", "cards", "adv", "trade", "friends", "top"].map(t => `<button data-tab="${t}" class="${S.tab === t ? "on" : ""}">${{drop: "DROP", cards: "CARDS", adv: "⚔ AFK", trade: "TRADE", friends: "FRIENDS", top: "TOP"}[t]}<span class="badge" id="b-${t}"></span></button>`).join("")}</div>
+    ${raidBanner()}<div class="tabs">${["drop", "cards", "adv", "trade", "friends", "top"].map(t => `<button data-tab="${t}" class="${S.tab === t ? "on" : ""}">${{drop: "DROP", cards: "CARDS", adv: "⚔ AFK", trade: "TRADE", friends: "FRIENDS", top: "TOP"}[t]}<span class="badge" id="b-${t}"></span></button>`).join("")}</div>
     <div class="win"><div class="bar"><b>${{drop: "CARD_DROP.EXE", cards: "COLLECTION.EXE", adv: "ADVENTURE.EXE", trade: "TRADE.EXE", friends: S.chatWith ? "CHAT.EXE" : "FRIENDS.EXE", top: "LEADERBOARD.EXE"}[S.tab]}</b><span class="dot"></span><span class="dot"></span></div><div class="pad" id="view">${inner}</div></div>`;
 }
 function bindShell() {
@@ -1133,7 +1139,28 @@ const stagePower = n => Math.round(40 * Math.pow(1.12, n - 1));
 const xpCost = lv => Math.round(10 * Math.pow(lv, 1.6));
 const goldCost = lv => Math.round(5 * Math.pow(lv, 1.5));
 const RAID_LV = 60;
-const RAID_BOSSES = ["KING SLIME", "VOID BAT", "BONE TITAN", "CRYSTAL GOLEM", "PIXEL DRAGON"];
+const RAID_BOSSES = ["KING SLIME", "VOID BAT", "BONE TITAN", "CRYSTAL GOLEM", "PIXEL DRAGON", "NEON KRAKEN",
+  "STORM PHOENIX", "GLITCH WYRM", "FROST COLOSSUS", "SHADOW HYDRA", "LAVA BEHEMOTH", "COSMIC LEVIATHAN"];
+// a new raid boss every 3 weeks - MUST match raid_season() on the server
+const RAID_EPOCH = 1795456800, RAID_SEASON = 1814400;
+function raidSeason() {
+  const now = Date.now() / 1000 + (S.offset || 0), n = Math.max(0, Math.floor((now - RAID_EPOCH) / RAID_SEASON));
+  const start = RAID_EPOCH + n * RAID_SEASON, next = start + RAID_SEASON;
+  return {n, boss: n % 12, name: RAID_BOSSES[n % 12], next: next - now, since: now - start, nextName: RAID_BOSSES[(n + 1) % 12]};
+}
+function raidBanner() {
+  const s = raidSeason();
+  if (s.next < 48 * 3600) return `<div class="raidban">⚠ NEW RAID BOSS <b>${s.nextName}</b> arrives in <b>${fmtT(s.next)}</b> - get your team ready! (⚔ AFK → RAIDS)</div>`;
+  if (s.since < 24 * 3600) return `<div class="raidban new">🐉 <b>${s.name}</b> has arrived! team up and fight it in ⚔ AFK → RAIDS</div>`;
+  return "";
+}
+function raidAlerts() {
+  if (!S.user) return;
+  const s = raidSeason(), once = (k, msg) => { try { if (localStorage.getItem(k)) return; localStorage.setItem(k, "1"); } catch (e) { return; } toast(msg); try { sparkle(); } catch (e) {} };
+  if (s.next < 24 * 3600) once("dp_raidwarn_" + (s.n + 1), `⚠ ${s.nextName} arrives in ${fmtT(s.next)} - get your raid team ready!`);
+  if (s.since < 24 * 3600) once("dp_raidnew_" + s.n, `🐉 NEW RAID BOSS: ${s.name} has arrived!`);
+}
+setInterval(raidAlerts, 60000);
 const MONSTERS = ["SLIME", "BAT", "SKULL", "GOLEM", "DRAKE"];
 const fmtN = n => Number(n || 0).toLocaleString("en-GB");
 const fmtT = s => { s = Math.max(0, Math.floor(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60);
@@ -1186,7 +1213,9 @@ function boostsHTML(a) {
 const myCard = id => S.mine.find(c => c.id === id);
 const teamCards = () => (S.adv ? S.adv.team : []).map(myCard).filter(Boolean);
 
+const TURBO = new URLSearchParams(location.search).get("turbo") === "1";   // the PC app's TURBO switch
 function advView() {
+  if (TURBO) return `<div class="seasonbox"><b>⚡ TURBO IS ON - AFK MODE IS OFF</b><p>AFK battles and raids are switched off to save your PC's power.<br>Turn <b>TURBO OFF</b> on the toolbar to play AFK.</p></div>`;
   if (!S.adv) return `<p class="small">loading your adventure...</p>`;
   const sw = `<div class="seg"><button class="${S.advMode !== "raids" ? "on" : ""}" data-amode="team">⚔ ADVENTURE</button><button class="${S.advMode === "raids" ? "on" : ""}" data-amode="raids">🐉 RAIDS</button></div>`;
   return sw + (S.advMode === "raids" ? raidsView() : (S.picking ? teamPickView() : teamView()));
@@ -1209,6 +1238,14 @@ function teamView() {
   h += `<div class="loot">⏳ away ${fmtT(a.away_secs)}${a.away_secs >= (a.max_secs || 43200) ? ` (FULL - ${Math.round((a.max_secs || 43200) / 3600)}h max)` : ""}<br>
     <b>+${fmtN(a.pending_gold)} 🪙 &nbsp; +${fmtN(a.pending_xp)} ✨</b>${a.pending_stage > a.stage ? `<br>stage ${a.stage} → <b>${a.pending_stage}</b>` : ""}
     <button class="wide" id="collect" ${gotLoot || a.pending_stage > a.stage ? "" : "disabled"}>COLLECT LOOT</button></div>`;
+  const pk = a.perks || {}, totX = (pk.xp || 0) * 5 + (a.vet_pct || 0) + (a.cards_pct || 0) + (a.daily_pct || 0),
+    totG = (pk.gold || 0) * 5 + (a.vet_pct || 0) + (a.cards_pct || 0) + (a.daily_pct || 0);
+  h += `<div class="boostbox"><b>🚀 YOUR BOOSTS: +${totX}% XP · +${totG}% gold</b>
+    <div class="brow"><span>☀ daily boost${a.streak ? ` (day ${a.streak} streak 🔥)` : ""}</span><b>+${a.daily_pct || 0}%</b></div>
+    <div class="brow"><span>🎖 veteran (days played)</span><b>+${a.vet_pct || 0}%</b></div>
+    <div class="brow"><span>🃏 collector (cards owned)</span><b>+${a.cards_pct || 0}%</b></div>
+    ${pk.xp || pk.gold ? `<div class="brow"><span>✨ perks</span><b>+${(pk.xp || 0) * 5}% XP · +${(pk.gold || 0) * 5}% gold</b></div>` : ""}
+    <div class="lbl2">daily boost switches on by itself each day you play - come back every day to grow your streak (max +45% at 7 days)</div></div>`;
   h += `<div class="sec">YOUR TEAM (${team.length}/5) <button class="alt mini" id="editteam">EDIT TEAM</button></div>`;
   h += team.length ? `<div class="teamlist">${team.map(c => {
     const lv = lvOf(c), cap = levelCap(c.stars), max = lv >= cap, e = enOf(c), eg = 5000 * (e + 1) ** 2, ex = 3000 * (e + 1) ** 2;
@@ -1236,7 +1273,11 @@ function teamPickView() {
 
 function raidsView() {
   const a = S.adv, ready = teamCards().filter(c => lvOf(c) >= RAID_LV).length;
-  let h = `<div class="small">🐉 RAIDS: team up with another player to fight a giant boss for 4 hours, AFK.<br>
+  const se = raidSeason();
+  let h = `<div class="offer seasonbox"><div class="oh"><b>🐉 THIS SEASON'S BOSS: ${se.name}</b><span class="st">season ${se.n + 1}</span></div>
+    <canvas class="raidboss" data-boss="${se.boss}" width="64" height="64"></canvas>
+    <div class="small">raid loot this season: <b>+${se.n * 10}%</b> · next boss <b>${se.nextName}</b> in <b>${fmtT(se.next)}</b><br>a new, tougher boss arrives every 3 weeks</div></div>
+    <div class="small">🐉 RAIDS: team up with another player to fight a giant boss for 4 hours, AFK.<br>
     <b>both players</b> need 3 team cards at <b>level ${RAID_LV}+</b>. you have <b>${ready}/3</b> · raids won: ${a.raids_won}</div>`;
   for (const r of S.myRaids || []) {
     const host = r.host === S.user.id, boss = RAID_BOSSES[r.boss] || "BOSS";
@@ -1251,7 +1292,7 @@ function raidsView() {
         <canvas class="raidboss" data-boss="${r.boss}" width="64" height="64"></canvas>
         <div class="hp big"><i style="width:${100 - pct}%"></i></div>
         <div class="small">team power ${fmtN(r.host_power + r.guest_power)} · ${left > 0 ? `${fmtT(left)} left` : "BOSS DEFEATED!"}</div>
-        ${left <= 0 && !mine ? `<button class="wide" data-rclaim="${r.id}">CLAIM RAID LOOT (+${fmtN((r.host_power + r.guest_power) * 10)}🪙 +${fmtN((r.host_power + r.guest_power) * 6)}✨)</button>` : ""}
+        ${left <= 0 && !mine ? `<button class="wide" data-rclaim="${r.id}">CLAIM RAID LOOT (+${fmtN(Math.round((r.host_power + r.guest_power) * 10 * (1 + 0.1 * (r.season || 0))))}🪙 +${fmtN(Math.round((r.host_power + r.guest_power) * 6 * (1 + 0.1 * (r.season || 0))))}✨)</button>` : ""}
         ${mine ? `<div class="small">you took your loot - waiting for your partner</div>` : ""}</div>`;
     }
   }
@@ -1292,7 +1333,7 @@ function bindAdv() {
   document.querySelectorAll("[data-rcancel]").forEach(b => b.onclick = () => advAct("raid_cancel", {p_id: +b.dataset.rcancel}, "raid cancelled"));
   document.querySelectorAll("[data-rclaim]").forEach(b => b.onclick = () => advAct("raid_claim", {p_id: +b.dataset.rclaim},
     r => { fanfare(0); return `RAID LOOT! +${fmtN(r.gold)} 🪙 +${fmtN(r.xp)} ✨`; }));
-  document.querySelectorAll("canvas.raidboss").forEach(cv => drawMonster(cv, +cv.dataset.boss, 99, true));
+  document.querySelectorAll("canvas.raidboss").forEach(cv => drawMonster(cv, +cv.dataset.boss % 5, 99 + +cv.dataset.boss, true));
   startBattle();
 }
 function sparkleOk() { try { sparkle(); } catch (e) {} }
@@ -1340,7 +1381,7 @@ function startBattle() {
 }
 
 setInterval(async () => {   // keep the adventure fresh while you watch it
-  if (S.tab !== "adv" || S.picking || !S.user || Date.now() - (S.advLoaded || 0) < 55000) return;
+  if (TURBO || S.tab !== "adv" || S.picking || !S.user || Date.now() - (S.advLoaded || 0) < 55000) return;
   try { await loadAdventure(); if (S.tab === "adv" && !S.picking) render(); } catch (e) {}
 }, 15000);
 
@@ -1351,7 +1392,7 @@ async function render(full) {
   if (S.tab === "drop") { app.innerHTML = shell(dropView()); bindShell(); bindDrop(); }
   if (S.tab === "cards") { if (full) S.mine = await S.api.myCards(S.user.id).catch(() => S.mine); app.innerHTML = shell(cardsView()); bindShell(); bindCards(); }
   if (S.tab === "adv") {
-    if (full || !S.adv) await loadAdventure().catch(e => toast(e.message));
+    if (!TURBO && (full || !S.adv)) await loadAdventure().catch(e => toast(e.message));
     app.innerHTML = shell(advView()); bindShell(); bindAdv();
   }
   if (S.tab === "top") { if (full) [S.board, S.bigPulls] = await Promise.all([S.api.board().catch(() => S.board), S.api.bigPulls().catch(() => S.bigPulls)]); app.innerHTML = shell(topView()); bindShell(); }
