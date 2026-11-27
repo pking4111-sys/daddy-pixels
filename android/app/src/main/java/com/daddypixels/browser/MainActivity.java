@@ -1,6 +1,7 @@
 package com.daddypixels.browser;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.ActivityNotFoundException;
@@ -159,8 +160,37 @@ public class MainActivity extends Activity {
         return s;
     }
 
-    String homeUrl() { return skin.terminal ? HOME_FALLOUT : HOME_PIXELS; }
+    String homeUrl() { return (skin.terminal ? HOME_FALLOUT : HOME_PIXELS) + "?se=" + Uri.encode(searchPrefix()); }
 
+    // search engines: Google by default, WebCrawler (lite) on slower phones
+    static final String[][] ENGINES = {
+            {"Google", "https://www.google.com/search?q="},
+            {"DuckDuckGo", "https://duckduckgo.com/?q="},
+            {"WebCrawler (lite)", "https://www.webcrawler.com/serp?q="}};
+
+    boolean slowPhone() {
+        try {
+            ActivityManager am = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+            ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
+            am.getMemoryInfo(mi);
+            return am.isLowRamDevice() || mi.totalMem < 3L * 1024 * 1024 * 1024 || Runtime.getRuntime().availableProcessors() <= 4;
+        } catch (Exception e) { return false; }
+    }
+
+    int engine() { return Math.max(0, Math.min(ENGINES.length - 1, prefs.getInt("engine", slowPhone() ? 2 : 0))); }
+
+    String searchPrefix() { return ENGINES[engine()][1]; }
+
+    void pickEngine() {
+        String[] names = new String[ENGINES.length];
+        for (int i = 0; i < names.length; i++) names[i] = ENGINES[i][0];
+        new AlertDialog.Builder(this).setTitle("SEARCH ENGINE")
+                .setSingleChoiceItems(names, engine(), (d, i) -> {
+                    prefs.edit().putInt("engine", i).apply();
+                    d.dismiss();
+                    toast("Searching with " + ENGINES[i][0]);
+                    if (current != null && isHome(current.getUrl())) current.loadUrl(homeUrl());
+                })
     int dp(float v) { return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, getResources().getDisplayMetrics()); }
 
     GradientDrawable box(int fill, int stroke) {
@@ -312,7 +342,7 @@ public class MainActivity extends Activity {
         else if (text.equals("daddypixels://carddrop")) url = CARD_DROP_URL;
         else if (text.startsWith("file:///android_asset/") || text.matches("(?i)^(https?|about|data):.*")) url = text;
         else if (text.matches("(?i)^[^\\s]+\\.[a-z]{2,}(:\\d+)?(/.*)?$")) url = "https://" + text;
-        else url = "https://duckduckgo.com/?q=" + Uri.encode(text);
+        else url = searchPrefix() + Uri.encode(text);
         if (current != null) {
             if (url.startsWith("http") && handleUrl(current, url, true)) { urlBox.clearFocus(); return; }
             current.loadUrl(url);
@@ -521,6 +551,7 @@ public class MainActivity extends Activity {
         m.getMenu().add(0, 7, 0, (prefs.getBoolean("shield", true) ? "✓ " : "   ") + "Scam / phishing shield");
         m.getMenu().add(0, 8, 0, (prefs.getBoolean("desktop", false) ? "✓ " : "   ") + "Desktop site");
         m.getMenu().add(0, 9, 0, (prefs.getBoolean("intro", true) ? "✓ " : "   ") + "Startup intro");
+        m.getMenu().add(0, 14, 0, "Search engine: " + ENGINES[engine()][0]);
         m.getMenu().add(0, 10, 0, "Share page");
         m.getMenu().add(0, 11, 0, "Clear history + cookies");
         m.getMenu().add(0, 12, 0, "Check for updates");
@@ -553,6 +584,7 @@ public class MainActivity extends Activity {
                     toast("History, cache and cookies cleared");
                     break;
                 case 12: checkForUpdate(true); break;
+                case 14: pickEngine(); break;
                 case 13:
                     new AlertDialog.Builder(this).setTitle("DADDY PIXELS")
                             .setMessage("Version " + BuildConfig.VERSION_NAME + "\nSurf the web, pixel by pixel.\n\nMade for fun by pking4111-sys.")
