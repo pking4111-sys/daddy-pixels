@@ -104,7 +104,9 @@ button.mini{padding:3px 7px;font-size:10px;box-shadow:2px 2px 0 var(--b)}
 .tm{display:flex;gap:10px;align-items:center;border:2px solid var(--b);padding:6px;background:var(--soft)}
 .tm .pick{cursor:default}
 .tmi{flex:1;font-size:12px}
-.pk{display:flex;flex-direction:column;align-items:center;width:104px;text-align:center}.pk .lbl2{font-size:14px}
+.pk{display:flex;flex-direction:column;align-items:center;width:104px;text-align:center}
+.tm.ench .pick{filter:drop-shadow(0 0 5px #a05cff)}
+.tm button.mini{white-space:nowrap}.pk .lbl2{font-size:14px}
 .code{font-size:28px;letter-spacing:6px;text-align:center;font-weight:700;margin:4px 0 8px}
 canvas.raidboss{display:block;margin:4px auto;width:128px;height:128px;image-rendering:pixelated}
 body.fallout .card{--f1:#0d2214;--f2:#07140b;border-width:1px;box-shadow:inset 0 0 0 1px #1f9a48}
@@ -1141,8 +1143,8 @@ Object.assign(SupaAPI.prototype, {
   async levels(ids) {
     const out = {};
     for (let i = 0; i < ids.length; i += 150) {
-      const {data} = await this.sb.from("card_levels").select("claim_id,level").in("claim_id", ids.slice(i, i + 150));
-      (data || []).forEach(r => out[r.claim_id] = r.level);
+      const {data} = await this.sb.from("card_levels").select("claim_id,level,enchant").in("claim_id", ids.slice(i, i + 150));
+      (data || []).forEach(r => { out[r.claim_id] = r.level; S.ench[r.claim_id] = r.enchant || 0; });
     }
     return out;
   },
@@ -1164,6 +1166,23 @@ async function loadAdventure() {
   S.advLoaded = Date.now();
 }
 const lvOf = c => (S.lv || {})[c.id] || 1;
+const enOf = c => (S.ench || {})[c.id] || 0;
+const powOf = c => Math.round(cardPower(c.stars, c.finish, lvOf(c)) * (1 + 0.04 * enOf(c)));
+S.ench = {};
+const PERKS = {xp: ["📚 FAST LEARNER", "+5% XP per level"], gold: ["🪙 GOLD RUSH", "+5% gold per level"],
+  power: ["💪 BATTLE HARDENED", "+3% team power per level"], nap: ["😴 LONG NAP", "+2 hours of loot storage per level"]};
+function boostsHTML(a) {
+  const need = 345600, pct = Math.min(100, (a.grind_secs || 0) / need * 100);
+  if (!a.boosts) return `<div class="sec">✨ BOOSTS (locked)</div>
+    <div class="small">perks + enchantments unlock after <b>4 days</b> of adventuring.<br>your grind time: <b>${fmtT(a.grind_secs || 0)}</b> / 96h</div>
+    <div class="hp big"><i style="width:${pct}%;background:#a05cff"></i></div><div class="small">only time with a team counts - collect your loot to bank it</div>`;
+  return `<div class="sec">✨ PERKS · ${a.perk_points} point${a.perk_points === 1 ? "" : "s"} to spend</div>
+    <div class="small">you get 1 perk point for each day of adventuring from day 4 on</div>
+    ${Object.entries(PERKS).map(([k, [n, d]]) => { const lv = (a.perks || {})[k] || 0;
+      return `<div class="tm"><div class="tmi"><b>${n}</b> &nbsp;Lv ${lv}/3<br><span class="lbl2">${d}</span></div>
+        <button class="mini" data-perk="${k}" ${lv < 3 && a.perk_points > 0 ? "" : "disabled"}>${lv >= 3 ? "MAX" : "+1"}</button></div>`; }).join("")}
+    <div class="small">✦ enchant your team cards above: +4% power per level (max 5)</div>`;
+}
 const myCard = id => S.mine.find(c => c.id === id);
 const teamCards = () => (S.adv ? S.adv.team : []).map(myCard).filter(Boolean);
 
@@ -1187,29 +1206,31 @@ function teamView() {
       : win ? "your team is winning! they clear a new stage every 2 minutes while you're away."
       : "this stage is too strong - level up your cards to beat it! (you still earn loot)"}</div>`;
   const gotLoot = a.pending_gold > 0 || a.pending_xp > 0;
-  h += `<div class="loot">⏳ away ${fmtT(a.away_secs)}${a.away_secs >= 43200 ? " (FULL - 12h max)" : ""}<br>
+  h += `<div class="loot">⏳ away ${fmtT(a.away_secs)}${a.away_secs >= (a.max_secs || 43200) ? ` (FULL - ${Math.round((a.max_secs || 43200) / 3600)}h max)` : ""}<br>
     <b>+${fmtN(a.pending_gold)} 🪙 &nbsp; +${fmtN(a.pending_xp)} ✨</b>${a.pending_stage > a.stage ? `<br>stage ${a.stage} → <b>${a.pending_stage}</b>` : ""}
     <button class="wide" id="collect" ${gotLoot || a.pending_stage > a.stage ? "" : "disabled"}>COLLECT LOOT</button></div>`;
   h += `<div class="sec">YOUR TEAM (${team.length}/5) <button class="alt mini" id="editteam">EDIT TEAM</button></div>`;
   h += team.length ? `<div class="teamlist">${team.map(c => {
-    const lv = lvOf(c), cap = levelCap(c.stars), max = lv >= cap;
-    return `<div class="tm"><div class="pick">${cardHTML(c.character_id, c.stars, c.finish, c.print_no)}</div>
-      <div class="tmi"><b>Lv ${lv}</b>${max ? " MAX" : ` / ${cap}`}<br>⚔ ${fmtN(cardPower(c.stars, c.finish, lv))}
+    const lv = lvOf(c), cap = levelCap(c.stars), max = lv >= cap, e = enOf(c), eg = 5000 * (e + 1) ** 2, ex = 3000 * (e + 1) ** 2;
+    return `<div class="tm${e ? " ench" : ""}"><div class="pick">${cardHTML(c.character_id, c.stars, c.finish, c.print_no)}</div>
+      <div class="tmi"><b>Lv ${lv}</b>${max ? " MAX" : ` / ${cap}`}<br>⚔ ${fmtN(powOf(c))}
+      ${a.boosts ? `<br>✦ enchant ${e}/5 ${e < 5 ? `<button class="mini alt" data-ench="${c.id}" ${a.gold >= eg && a.xp >= ex ? "" : "disabled"}>ENCHANT ${fmtN(eg)}🪙 ${fmtN(ex)}✨</button>` : "MAX"}` : ""}
       ${max ? "" : `<br><span class="lbl2">next: ${fmtN(xpCost(lv))}✨ ${fmtN(goldCost(lv))}🪙</span>
       <div class="row"><button class="mini" data-up="${c.id}" data-n="1" ${a.xp >= xpCost(lv) && a.gold >= goldCost(lv) ? "" : "disabled"}>+1</button>
       <button class="mini alt" data-up="${c.id}" data-n="10" ${a.xp >= xpCost(lv) && a.gold >= goldCost(lv) ? "" : "disabled"}>+10</button></div>`}</div></div>`;
   }).join("")}</div>` : `<p class="small">tap EDIT TEAM to pick your fighters.</p>`;
+  h += boostsHTML(a);
   h += `<div class="small">level caps: ★50 · ★★60 · ★★★70 · ★★★★80 · ★★★★★90 · ✦ secret cat 100<br>
     raids unlock when 3 of your team cards are level ${RAID_LV}+</div>`;
   return h;
 }
 
 function teamPickView() {
-  const list = [...S.mine].sort((x, y) => cardPower(y.stars, y.finish, lvOf(y)) - cardPower(x.stars, x.finish, lvOf(x)));
+  const list = [...S.mine].sort((x, y) => powOf(y) - powOf(x));
   return `<div class="small">pick up to 5 cards (${S.picking.length}/5) - strongest first</div>
     <div class="row"><button class="wide" id="saveteam">SAVE TEAM</button><button class="wide alt" id="cancelteam">CANCEL</button></div>
     ${list.length ? `<div class="mgrid">${list.map(c => `<div class="pk"><div class="pick ${S.picking.includes(c.id) ? "sel" : ""}" data-pid="${c.id}">${cardHTML(c.character_id, c.stars, c.finish, c.print_no)}</div>
-      <div class="lbl2">Lv ${lvOf(c)} · ⚔${fmtN(cardPower(c.stars, c.finish, lvOf(c)))}</div></div>`).join("")}</div>`
+      <div class="lbl2">Lv ${lvOf(c)}${enOf(c) ? ` ✦${enOf(c)}` : ""} · ⚔${fmtN(powOf(c))}</div></div>`).join("")}</div>`
       : `<p class="small">you need cards first - grab some at the next drop!</p>`}`;
 }
 
@@ -1263,6 +1284,8 @@ function bindAdv() {
   });
   document.querySelectorAll("[data-up]").forEach(b => b.onclick = () => advAct("afk_level_up", {p_claim: +b.dataset.up, p_times: +b.dataset.n},
     r => { sparkleOk(); return `LEVEL UP! now Lv ${r.level}`; }));
+  document.querySelectorAll("[data-perk]").forEach(b => b.onclick = () => advAct("afk_buy_perk", {p_perk: b.dataset.perk}, r => { sparkleOk(); return "PERK UP! ✨"; }));
+  document.querySelectorAll("[data-ench]").forEach(b => b.onclick = () => advAct("afk_enchant", {p_claim: +b.dataset.ench}, r => { sparkleOk(); return `ENCHANTED! ✦ ${r.enchant}/5`; }));
   if ($("rcreate")) $("rcreate").onclick = () => advAct("raid_create", {}, "raid made! send the code to a friend");
   if ($("rjoin")) $("rjoin").onclick = () => advAct("raid_join", {p_code: $("rcode").value}, "you joined the raid! ⚔");
   document.querySelectorAll("[data-rjoincode]").forEach(b => b.onclick = () => advAct("raid_join", {p_code: b.dataset.rjoincode}, "you joined the raid! ⚔"));
