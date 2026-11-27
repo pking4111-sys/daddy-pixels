@@ -342,7 +342,7 @@ public class MainActivity extends Activity {
         text = text == null ? "" : text.trim();
         String url;
         if (text.isEmpty()) url = homeUrl();
-        else if (text.equals("daddypixels://carddrop")) url = CARD_DROP_URL;
+        else if (text.equals("daddypixels://carddrop")) url = cardDropUrl();
         else if (text.startsWith("file:///android_asset/") || text.matches("(?i)^(https?|about|data):.*")) url = text;
         else if (text.matches("(?i)^[^\\s]+\\.[a-z]{2,}(:\\d+)?(/.*)?$")) url = "https://" + text;
         else url = searchPrefix() + Uri.encode(text);
@@ -478,7 +478,7 @@ public class MainActivity extends Activity {
     boolean handleUrl(WebView view, String url, boolean mainFrame) {
         Uri u = Uri.parse(url);
         String scheme = u.getScheme() == null ? "" : u.getScheme().toLowerCase();
-        if (url.equals("daddypixels://carddrop")) { view.loadUrl(CARD_DROP_URL); return true; }
+        if (url.equals("daddypixels://carddrop")) { view.loadUrl(cardDropUrl()); return true; }
         if (scheme.equals("daddypixels") && "continue".equals(u.getHost())) {
             String target = u.getQueryParameter("to");
             if (target != null) { Shield.allow(Uri.parse(target).getHost()); view.loadUrl(target); }
@@ -564,7 +564,7 @@ public class MainActivity extends Activity {
                 case 1: newTab(homeUrl()); break;
                 case 2: current.loadUrl(homeUrl()); break;
                 case 3: current.reload(); break;
-                case 4: current.loadUrl(CARD_DROP_URL); break;
+                case 4: current.loadUrl(cardDropUrl()); break;
                 case 5: setSkin(!skin.terminal); break;
                 case 6: toggle("adblock", true, "Ad blocker"); break;
                 case 7: toggle("shield", true, "Phishing shield"); break;
@@ -614,6 +614,9 @@ public class MainActivity extends Activity {
 
     // =================================================================== updater
     /** Looks for a newer Daddy Pixels APK on the GitHub releases page. */
+    /** Card Drop gets told which version this is - old versions are asked to update first. */
+    String cardDropUrl() { return CARD_DROP_URL + "?v=" + Uri.encode(BuildConfig.VERSION_NAME) + (skin.terminal ? "&skin=fallout" : "&skin=pixels"); }
+
     void checkForUpdate(boolean manual) {
         if (manual) toast("Checking for updates...");
         new Thread(() -> {
@@ -626,7 +629,7 @@ public class MainActivity extends Activity {
                 Scanner sc = new Scanner(in, "UTF-8").useDelimiter("\\A");
                 JSONArray releases = new JSONArray(sc.hasNext() ? sc.next() : "[]");
                 in.close();
-                String bestVer = null, bestUrl = null;
+                String bestVer = null, bestUrl = null, bestNotes = "";
                 for (int i = 0; i < releases.length(); i++) {
                     JSONObject r = releases.getJSONObject(i);
                     if (r.optBoolean("draft") || r.optBoolean("prerelease")) continue;
@@ -637,15 +640,18 @@ public class MainActivity extends Activity {
                         String name = a.optString("name");
                         if (!name.toLowerCase().endsWith(".apk")) continue;
                         String ver = versionFromName(name, r.optString("tag_name"));
-                        if (bestVer == null || newer(ver, bestVer)) { bestVer = ver; bestUrl = a.optString("browser_download_url"); }
+                        if (bestVer == null || newer(ver, bestVer)) { bestVer = ver; bestUrl = a.optString("browser_download_url"); bestNotes = r.optString("body", ""); }
                     }
                 }
-                final String ver = bestVer, url = bestUrl;
+                final String ver = bestVer, url = bestUrl, notes = bestNotes.length() > 1500 ? bestNotes.substring(0, 1500) + "..." : bestNotes;
                 ui.post(() -> {
                     if (ver != null && newer(ver, BuildConfig.VERSION_NAME)) {
-                        new AlertDialog.Builder(this).setTitle("UPDATE AVAILABLE")
+                        new AlertDialog.Builder(this).setTitle("A NEW UPDATE IS OUT!")
                                 .setMessage("Daddy Pixels " + ver + " is out (you have " + BuildConfig.VERSION_NAME + ").\n\n"
+                                        + "🃏 Card Drop is switched off until you update.\n\n"
+                                        + (notes.isEmpty() ? "" : "UPDATE LOG:\n" + notes + "\n\n")
                                         + "Tap DOWNLOAD, then open the file to install it over this version.")
+                                .setCancelable(false)
                                 .setPositiveButton("DOWNLOAD", (d, i) -> openOutside(url))
                                 .setNegativeButton("LATER", null).show();
                     } else if (manual) {
